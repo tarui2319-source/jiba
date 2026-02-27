@@ -49,12 +49,16 @@ export const UsernameModal = React.memo<UsernameModalProps>(({
   const [error, setError] = useState<string | null>(null);
 
   // visible が true になるたびに入力欄をリセット
+  // initialValue は visible=true になる前（呼び出し側のステート更新）で確定するため
+  // visible の変化だけを監視すれば十分。initialValue を依存配列に含めると
+  // visible=true のまま initialValue が変わった場合に入力中の値が上書きされる。
   useEffect(() => {
     if (visible) {
       setValue(initialValue ?? '');
       setError(null);
     }
-  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
 
   const handleChange = useCallback((text: string) => {
     setValue(text);
@@ -95,7 +99,7 @@ export const UsernameModal = React.memo<UsernameModalProps>(({
             onChangeText={handleChange}
             placeholder={t('username_placeholder')}
             placeholderTextColor={Colors.textMuted}
-            maxLength={MAX_LENGTH + 5}  // UI 制限より少し緩め（バリデーションで弾く）
+            maxLength={MAX_LENGTH}  // OS レベルで MAX_LENGTH に制限
             autoFocus
             returnKeyType="done"
             onSubmitEditing={handleSave}
