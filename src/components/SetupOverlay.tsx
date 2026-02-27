@@ -22,6 +22,10 @@ interface SetupOverlayProps {
   onSetDifficulty: (d: CpuDifficulty) => void;
   onStart: () => void;
   rating?: RatingState | null;
+  /** 設定済みユーザーネーム（null = 未設定） */
+  username?: string | null;
+  /** ユーザーネーム編集ボタン押下コールバック */
+  onEditUsername?: () => void;
 }
 
 const DIFFICULTIES: CpuDifficulty[] = [1, 2, 3, 4];
@@ -39,6 +43,7 @@ const LOCALES: { value: Locale; label: string }[] = [
 
 export const SetupOverlay = React.memo<SetupOverlayProps>(({
   gameMode, cpuDifficulty, onSetGameMode, onSetDifficulty, onStart, rating,
+  username, onEditUsername,
 }) => {
   const { t, locale, setLocale } = useI18n();
 
@@ -67,10 +72,27 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
           <Text style={styles.subtitle}>{t('game_subtitle')}</Text>
         </View>
 
-        {/* ── 段位バッジ ───────────────────────────────── */}
+        {/* ── 段位バッジ + ユーザーネーム ──────────────── */}
         {rating && (
           <View style={styles.rankCard}>
-            <Text style={styles.rankLabel}>{t('your_rank')}</Text>
+            {/* ヘッダー行: 段位ラベル + ユーザーネーム + 編集ボタン */}
+            <View style={styles.rankCardHeader}>
+              <View style={styles.rankCardLeft}>
+                <Text style={styles.rankLabel}>{t('your_rank')}</Text>
+                {username != null && (
+                  <Text style={styles.usernameText}>{username}</Text>
+                )}
+              </View>
+              {onEditUsername != null && (
+                <TouchableOpacity
+                  onPress={onEditUsername}
+                  style={styles.editBtn}
+                  activeOpacity={0.75}
+                >
+                  <Text style={styles.editBtnText}>✏️ {t('username_edit')}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
             <RankBadge rating={rating} size="normal" />
           </View>
         )}
@@ -209,11 +231,38 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     gap: 6,
   },
+  rankCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  rankCardLeft: {
+    gap: 2,
+    flex: 1,
+  },
   rankLabel: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
     fontWeight: '600',
     letterSpacing: 0.5,
+  },
+  usernameText: {
+    fontSize: FontSize.sm,
+    color: Colors.textPrimary,
+    fontWeight: '700',
+  },
+  editBtn: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceHigh,
+  },
+  editBtnText: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    fontWeight: '600',
   },
 
   // セクション

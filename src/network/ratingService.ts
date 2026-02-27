@@ -6,7 +6,7 @@
 
 import { getSupabaseClient, MY_PLAYER_ID } from './supabaseClient';
 import { RatingRow } from './networkTypes';
-import { RatingState } from '../engine/rankEngine';
+import { RatingState, DEFAULT_RATING } from '../engine/rankEngine';
 
 // ──────────────────────────────────────────────────────────────
 // fetchRating
@@ -68,4 +68,50 @@ export async function upsertRating(
     );
 
   if (error) throw new Error(error.message);
+}
+
+// ──────────────────────────────────────────────────────────────
+// updateUsername
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * ユーザーネームを player_ratings に保存する。
+ * 行が存在する場合は username 列だけ更新。
+ * 行が未作成（オンライン未プレイ）の場合はデフォルト段位で INSERT する。
+ */
+export async function updateUsername(
+  playerId: string,
+  username: string,
+): Promise<void> {
+  const supabase = getSupabaseClient();
+
+  // 既存行を更新（username のみ）
+  const { data: updated, error: updateError } = await supabase
+    .from('player_ratings')
+    .update({ username, updated_at: new Date().toISOString() })
+    .eq('player_id', playerId)
+    .select('player_id');
+
+  if (updateError) throw new Error(updateError.message);
+
+  // 行が存在しなかった場合はデフォルト段位で INSERT
+  if (!updated || updated.length === 0) {
+    const { error: insertError } = await supabase
+      .from('player_ratings')
+      .insert({
+        player_id: playerId,
+        username,
+        rank: DEFAULT_RATING.rank,
+        points: DEFAULT_RATING.points,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        updated_at: new Date().toISOString(),
+      });
+
+    // 23505 = unique_violation（競合条件は無視）
+    if (insertError && (insertError as { code?: string }).code !== '23505') {
+      throw new Error(insertError.message);
+    }
+  }
 }

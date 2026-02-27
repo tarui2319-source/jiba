@@ -35,6 +35,7 @@ describe('fetchRating', () => {
     it('プレイヤーの段位データを返す', async () => {
       const row: RatingRow = {
         player_id: 'test-player-uuid',
+        username: null,
         rank: 3, points: 45,
         wins: 10, losses: 5, draws: 2,
         updated_at: '2026-01-01T00:00:00Z',
@@ -80,7 +81,7 @@ describe('fetchRating', () => {
   describe('境界値', () => {
     it('rank=1, points=0 の初期値を正しく返す', async () => {
       const row: RatingRow = {
-        player_id: 'p', rank: 1, points: 0,
+        player_id: 'p', username: null, rank: 1, points: 0,
         wins: 0, losses: 0, draws: 0,
         updated_at: '2026-01-01',
       };
@@ -129,7 +130,7 @@ describe('upsertRating', () => {
     it('既存プレイヤーの敗北: losses をインクリメントする', async () => {
       const upsertFn = mockUpsert(null);
       const existing: RatingRow = {
-        player_id: 'test-player-uuid', rank: 3, points: 60,
+        player_id: 'test-player-uuid', username: null, rank: 3, points: 60,
         wins: 5, losses: 2, draws: 1, updated_at: '2026-01-01',
       };
 
@@ -150,7 +151,7 @@ describe('upsertRating', () => {
     it('引き分け: draws をインクリメントする', async () => {
       const upsertFn = mockUpsert(null);
       const existing: RatingRow = {
-        player_id: 'test-player-uuid', rank: 5, points: 40,
+        player_id: 'test-player-uuid', username: null, rank: 5, points: 40,
         wins: 3, losses: 1, draws: 0, updated_at: '2026-01-01',
       };
 

@@ -38,6 +38,8 @@ import { CpuDifficulty } from '../constants/cpuConfig';
 import { MatchResult } from '../network/networkTypes';
 import { useI18n } from '../i18n';
 import { useSoundEffects } from '../hooks/useSoundEffects';
+import { useUsername } from '../hooks/useUsername';
+import { UsernameModal } from '../components/UsernameModal';
 
 // expo-haptics は利用可能な場合のみ使用（Web では無視）
 let Haptics: { impactAsync: (style: string) => Promise<void>; notificationAsync: (type: string) => Promise<void> } | null = null;
@@ -54,6 +56,7 @@ const CPU_SIDE = 'red' as const;
 export function GameScreen() {
   const { t } = useI18n();
   const { playPlace, playWin, playLoss, playDraw, playRankUp } = useSoundEffects();
+  const { username, isSaving: isUsernameSaving, saveUsername } = useUsername();
 
   const gameStateReturn = useGameState(DEFAULT_MODE);
   const { gameState, applyMove, applyRandomMove, resetGame, surrender, size } = gameStateReturn;
@@ -67,6 +70,27 @@ export function GameScreen() {
   const [gameMode, setGameMode] = useState<GameMode>('local');
   const [cpuDifficulty, setCpuDifficulty] = useState<CpuDifficulty>(2);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
+
+  // ──────────────────────────────────────────────────────────────────
+  // ユーザーネームモーダル
+  // ──────────────────────────────────────────────────────────────────
+
+  const [usernameModalVisible, setUsernameModalVisible] = useState(false);
+
+  // 初回起動時（username 未設定）はモーダルを表示
+  useEffect(() => {
+    if (username === null) setUsernameModalVisible(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleUsernameSave = useCallback(async (name: string) => {
+    await saveUsername(name);
+    setUsernameModalVisible(false);
+  }, [saveUsername]);
+
+  const handleUsernameEdit = useCallback(() => {
+    setUsernameModalVisible(true);
+  }, []);
 
   // ──────────────────────────────────────────────────────────────────
   // マッチング（オンラインモード）
@@ -447,8 +471,19 @@ export function GameScreen() {
             onSetDifficulty={setCpuDifficulty}
             onStart={handleStart}
             rating={titleRating}
+            username={username}
+            onEditUsername={handleUsernameEdit}
           />
         )}
+
+        {/* ユーザーネームモーダル（初回設定 + 変更） */}
+        <UsernameModal
+          visible={usernameModalVisible}
+          initialValue={username}
+          isSaving={isUsernameSaving}
+          onSave={handleUsernameSave}
+          onCancel={username !== null ? () => setUsernameModalVisible(false) : undefined}
+        />
       </View>
     </SafeAreaView>
   );

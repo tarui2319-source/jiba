@@ -45,6 +45,7 @@ export type OnOpponentMove = (move: MoveRow) => void;
 /** Supabase: player_ratings テーブルの行 */
 export interface RatingRow {
   player_id: string;
+  username: string | null;  // 表示名（未設定時 null）
   rank: number;    // 1 〜 10
   points: number;  // 0 〜 99
   wins: number;

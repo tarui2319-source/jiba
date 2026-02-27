@@ -48,7 +48,7 @@ const draw: GameResult = {
 };
 
 const existingRow: RatingRow = {
-  player_id: 'test-player-uuid', rank: 2, points: 40,
+  player_id: 'test-player-uuid', username: null, rank: 2, points: 40,
   wins: 3, losses: 1, draws: 0, updated_at: '2026-01-01',
 };
 
