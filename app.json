@@ -7,8 +7,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0a0a0a"
+      "backgroundColor": "#080c14"
     },
     "ios": {
       "supportsTablet": false,
@@ -16,7 +17,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0a0a0a"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#080c14"
       },
       "package": "com.jiba.app"
     },
