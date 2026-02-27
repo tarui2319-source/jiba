@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Alert,
 } from 'react-native';
 import { ShapeKind } from '../engine/types';
 import { RatingState, DEFAULT_RATING } from '../engine/rankEngine';
@@ -261,31 +260,36 @@ export function GameScreen() {
   }, [startMatchmaking]);
 
   // ──────────────────────────────────────────────────────────────────
-  // 降参ハンドラ
+  // 降参ハンドラ（インライン確認UI）
+  // Alert.alert は Web/iframe 環境では window.confirm がブロックされて
+  // コールバックが呼ばれないため、ステートベースで実装する。
   // ──────────────────────────────────────────────────────────────────
 
+  const [showSurrenderConfirm, setShowSurrenderConfirm] = useState(false);
+
+  // ゲーム終了・リセット時は確認ダイアログを閉じる
+  useEffect(() => {
+    if (result) setShowSurrenderConfirm(false);
+  }, [result]);
+
   const handleSurrender = useCallback(() => {
-    Alert.alert(
-      '降参',
-      '本当に降参しますか？',
-      [
-        { text: 'キャンセル', style: 'cancel' },
-        {
-          text: '降参する',
-          style: 'destructive',
-          onPress: () => {
-            if (isOnlineGame) {
-              surrenderOnline();
-            } else {
-              // ローカル/CPU: 人間プレイヤーが降参
-              const surrenderer = gameMode === 'cpu' ? 'blue' : turnState.currentPlayer;
-              surrender(surrenderer);
-            }
-          },
-        },
-      ],
-    );
+    setShowSurrenderConfirm(true);
+  }, []);
+
+  const handleSurrenderConfirm = useCallback(() => {
+    setShowSurrenderConfirm(false);
+    if (isOnlineGame) {
+      surrenderOnline();
+    } else {
+      // ローカル/CPU: 人間プレイヤーが降参
+      const surrenderer = gameMode === 'cpu' ? 'blue' : turnState.currentPlayer;
+      surrender(surrenderer);
+    }
   }, [isOnlineGame, surrenderOnline, gameMode, turnState.currentPlayer, surrender]);
+
+  const handleSurrenderCancel = useCallback(() => {
+    setShowSurrenderConfirm(false);
+  }, []);
 
   // ──────────────────────────────────────────────────────────────────
   // マッチングオーバーレイの表示判定
@@ -331,26 +335,49 @@ export function GameScreen() {
 
         {/* アクションバー */}
         <View style={styles.actionBar}>
-          <TouchableOpacity
-            testID="surrender-button"
-            style={styles.surrenderButton}
-            onPress={handleSurrender}
-            disabled={!isPlaying}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.surrenderButtonText}>降参</Text>
-          </TouchableOpacity>
+          {showSurrenderConfirm ? (
+            // ── 降参確認モード ─────────────────────────────
+            <>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleSurrenderCancel}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cancelButtonText}>やめる</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmButton, styles.confirmButtonSurrender]}
+                onPress={handleSurrenderConfirm}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.confirmButtonText}>本当に降参</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            // ── 通常モード ─────────────────────────────────
+            <>
+              <TouchableOpacity
+                testID="surrender-button"
+                style={[styles.surrenderButton, !isPlaying && styles.surrenderButtonDisabled]}
+                onPress={handleSurrender}
+                disabled={!isPlaying}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.surrenderButtonText}>降参</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.confirmButton, !canConfirm && styles.confirmButtonDisabled]}
-            onPress={handleConfirm}
-            disabled={!canConfirm}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.confirmButtonText}>
-              {isCpuThinking ? '🤖' : (!isMyTurn ? '待機中' : '確定')}
-            </Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmButton, !canConfirm && styles.confirmButtonDisabled]}
+                onPress={handleConfirm}
+                disabled={!canConfirm}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.confirmButtonText}>
+                  {isCpuThinking ? '🤖' : (!isMyTurn ? '待機中' : '確定')}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
         {/* 再接続バナー（オンライン時のみ, zIndex: 200） */}
@@ -431,8 +458,31 @@ const styles = StyleSheet.create({
     minWidth: 70,
     minHeight: MIN_TAP,
   },
+  surrenderButtonDisabled: {
+    borderColor: Colors.border,
+    opacity: 0.4,
+  },
   surrenderButtonText: {
     color: Colors.red,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  // 確認モードのキャンセルボタン
+  cancelButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 70,
+    minHeight: MIN_TAP,
+  },
+  cancelButtonText: {
+    color: Colors.textSecondary,
     fontSize: FontSize.sm,
     fontWeight: '600',
     letterSpacing: 0.5,
@@ -444,9 +494,14 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md + 2,
     borderRadius: Radius.lg,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: MIN_TAP,
   },
   confirmButtonDisabled: {
     backgroundColor: Colors.neutral,
+  },
+  confirmButtonSurrender: {
+    backgroundColor: Colors.red,
   },
   confirmButtonText: {
     color: Colors.white,
