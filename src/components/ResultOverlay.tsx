@@ -1,67 +1,140 @@
 /**
  * JIBA — ResultOverlay コンポーネント
  * ゲーム終了時の結果表示オーバーレイ。
- * オンライン対戦時は段位変動（RankBadge）を表示する。
+ * MVP8-A: 勝者バナー強化・スコア比較・段位変動をクリーンに
  */
 
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { GameResult, Player } from '../engine/types';
 import { RatingState, RatingDelta } from '../engine/rankEngine';
 import { RankBadge } from './RankBadge';
-import { Colors, FontSize, Spacing } from '../constants/theme';
+import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
 
 interface ResultOverlayProps {
   result: GameResult;
   onRestart: () => void;
-  /** オンライン対戦時のみ渡す */
   ratingDelta?: RatingDelta | null;
-  /** オンライン対戦時のみ渡す */
   currentRating?: RatingState | null;
-  /** 降参したプレイヤー */
   surrenderedBy?: Player;
 }
 
 export const ResultOverlay = React.memo<ResultOverlayProps>(({
   result, onRestart, ratingDelta, currentRating, surrenderedBy,
 }) => {
-  const winnerLabel = surrenderedBy
-    ? (surrenderedBy === 'blue' ? '🏳️ BLUE が降参' : '🏳️ RED が降参')
-    : result.winner === 'blue' ? '🟦 BLUE の勝ち！'
-    : result.winner === 'red'  ? '🟥 RED の勝ち！'
-    : '🤝 引き分け';
+  // ── フェードイン ────────────────────────────────────
+  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
-  const winnerColor =
-    result.winner === 'blue' ? Colors.blueLight :
-    result.winner === 'red'  ? Colors.redLight :
-    Colors.textPrimary;
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1, duration: 280, useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0, duration: 280, useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
+
+  // ── 表示テキスト ────────────────────────────────────
+  const isWinnerBlue  = result.winner === 'blue';
+  const isWinnerRed   = result.winner === 'red';
+  const isDraw        = result.winner === 'draw';
+  const isSurrender   = !!surrenderedBy;
+
+  const winnerColor = isWinnerBlue ? Colors.blue
+                    : isWinnerRed  ? Colors.red
+                    : Colors.neutralText;
+
+  const bannerBg    = isWinnerBlue ? Colors.blueTint
+                    : isWinnerRed  ? Colors.redTint
+                    : 'rgba(255,255,255,0.04)';
+
+  const bannerBorder = isWinnerBlue ? Colors.blue
+                     : isWinnerRed  ? Colors.red
+                     : Colors.border;
+
+  const resultEmoji  = isSurrender  ? '🏳️'
+                     : isWinnerBlue ? '🟦'
+                     : isWinnerRed  ? '🟥'
+                     : '🤝';
+
+  const resultMain   = isSurrender
+    ? `${surrenderedBy === 'blue' ? 'BLUE' : 'RED'} が降参`
+    : isWinnerBlue  ? 'BLUE の勝ち！'
+    : isWinnerRed   ? 'RED の勝ち！'
+    : '引き分け';
+
+  // スコア合計でバーの幅比率を計算
+  const total = result.blueCount + result.redCount;
+  const bluePct = total > 0 ? result.blueCount / total : 0.5;
+  const redPct  = total > 0 ? result.redCount  / total : 0.5;
 
   return (
-    <View style={styles.overlay}>
-      <View style={styles.card}>
-        <Text style={[styles.resultText, { color: winnerColor }]}>{winnerLabel}</Text>
-        <View style={styles.stats}>
-          <Text style={[styles.statText, { color: Colors.blueLight }]}>
-            BLUE: {result.blueCount}マス (力:{result.bluePower})
-          </Text>
-          <Text style={[styles.statText, { color: Colors.redLight }]}>
-            RED:  {result.redCount}マス (力:{result.redPower})
-          </Text>
+    <Animated.View
+      style={[
+        styles.overlay,
+        { opacity: fadeAnim },
+      ]}
+    >
+      <Animated.View
+        style={[
+          styles.card,
+          { transform: [{ translateY: slideAnim }] },
+        ]}
+      >
+        {/* ── 勝者バナー ────────────────────────────── */}
+        <View style={[styles.banner, { backgroundColor: bannerBg, borderColor: bannerBorder }]}>
+          <Text style={styles.bannerEmoji}>{resultEmoji}</Text>
+          <Text style={[styles.bannerText, { color: winnerColor }]}>{resultMain}</Text>
         </View>
 
-        {/* 段位変動（オンライン対戦時のみ） */}
+        {/* ── スコア比較バー ─────────────────────────── */}
+        <View style={styles.scoreSection}>
+          <View style={styles.scoreRow}>
+            <Text style={[styles.scoreNum, { color: Colors.blueLight }]}>{result.blueCount}</Text>
+            <Text style={styles.scoreLabel}>マス</Text>
+            <Text style={styles.scoreSep}>vs</Text>
+            <Text style={styles.scoreLabel}>マス</Text>
+            <Text style={[styles.scoreNum, { color: Colors.redLight }]}>{result.redCount}</Text>
+          </View>
+
+          {/* 横バー */}
+          <View style={styles.barTrack}>
+            <View style={[styles.barBlue, { flex: bluePct }]} />
+            <View style={[styles.barRed, { flex: redPct }]} />
+          </View>
+
+          <View style={styles.scoreRow}>
+            <Text style={[styles.powerText, { color: Colors.blueLight }]}>
+              力: {result.bluePower}
+            </Text>
+            <View style={{ flex: 1 }} />
+            <Text style={[styles.powerText, { color: Colors.redLight }]}>
+              力: {result.redPower}
+            </Text>
+          </View>
+        </View>
+
+        {/* ── 段位変動 ────────────────────────────────── */}
         {currentRating && (
           <View style={styles.rankSection}>
-            <Text style={styles.rankTitle}>あなたの段位</Text>
+            <Text style={styles.rankSectionLabel}>あなたの段位</Text>
             <RankBadge rating={currentRating} size="normal" delta={ratingDelta} />
           </View>
         )}
 
-        <TouchableOpacity style={styles.button} onPress={onRestart} activeOpacity={0.8}>
-          <Text style={styles.buttonText}>もう一度</Text>
+        {/* ── もう一度ボタン ────────────────────────── */}
+        <TouchableOpacity
+          style={styles.restartBtn}
+          onPress={onRestart}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.restartBtnText}>もう一度</Text>
         </TouchableOpacity>
-      </View>
-    </View>
+      </Animated.View>
+    </Animated.View>
   );
 });
 
@@ -70,57 +143,116 @@ ResultOverlay.displayName = 'ResultOverlay';
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: 'rgba(4,8,18,0.9)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 100,
   },
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: Spacing.xl,
-    alignItems: 'center',
-    width: '80%',
+    borderRadius: Radius.xl,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xl,
+    alignItems: 'stretch',
+    width: '86%',
     gap: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  resultText: {
+
+  // 勝者バナー
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    gap: Spacing.sm,
+  },
+  bannerEmoji: {
     fontSize: FontSize.xl,
-    fontWeight: '700',
   },
-  stats: {
+  bannerText: {
+    fontSize: FontSize.xl,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+
+  // スコア比較
+  scoreSection: {
     gap: Spacing.xs,
-    alignItems: 'flex-start',
-    width: '100%',
   },
-  statText: {
-    fontSize: FontSize.md,
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+  scoreNum: {
+    fontSize: FontSize.xl,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
+    minWidth: 36,
+    textAlign: 'center',
+  },
+  scoreLabel: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+  },
+  scoreSep: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    marginHorizontal: Spacing.xs,
+  },
+  barTrack: {
+    flexDirection: 'row',
+    height: 8,
+    borderRadius: Radius.full,
+    overflow: 'hidden',
+    backgroundColor: Colors.border,
+    marginVertical: 2,
+  },
+  barBlue: {
+    backgroundColor: Colors.blue,
+    borderRadius: Radius.full,
+  },
+  barRed: {
+    backgroundColor: Colors.red,
+    borderRadius: Radius.full,
+  },
+  powerText: {
+    fontSize: FontSize.xs,
+    fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
+
+  // 段位
   rankSection: {
-    width: '100%',
-    gap: Spacing.xs,
-    paddingTop: Spacing.xs,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
+    paddingTop: Spacing.sm,
+    gap: Spacing.xs,
   },
-  rankTitle: {
+  rankSectionLabel: {
     fontSize: FontSize.xs,
-    color: Colors.textSecondary,
+    color: Colors.textMuted,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
-  button: {
-    marginTop: Spacing.sm,
+
+  // ボタン
+  restartBtn: {
     backgroundColor: Colors.blue,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: 10,
-    minWidth: 120,
+    paddingVertical: Spacing.md + 2,
+    borderRadius: Radius.lg,
     alignItems: 'center',
+    marginTop: Spacing.xs,
   },
-  buttonText: {
+  restartBtnText: {
     color: Colors.white,
-    fontSize: FontSize.md,
-    fontWeight: '700',
+    fontSize: FontSize.lg,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
 });

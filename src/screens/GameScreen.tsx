@@ -32,7 +32,7 @@ import { ResultOverlay } from '../components/ResultOverlay';
 import { SetupOverlay, GameMode } from '../components/SetupOverlay';
 import { MatchmakingOverlay } from '../components/MatchmakingOverlay';
 import { ReconnectBanner } from '../components/ReconnectBanner';
-import { Colors, FontSize, Spacing } from '../constants/theme';
+import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
 import { DEFAULT_MODE } from '../constants/gameConfig';
 import { CpuDifficulty } from '../constants/cpuConfig';
 import { MatchResult } from '../network/networkTypes';
@@ -402,36 +402,45 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg,
   },
   boardWrapper: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
+  // ── アクションバー ────────────────────────────────────
   actionBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    backgroundColor: '#111111',
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: Spacing.sm,
   },
+  // 降参: ゴーストボタン（控えめ）
   surrenderButton: {
-    backgroundColor: 'transparent',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
-    borderRadius: 10,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.neutral,
+    borderColor: Colors.border,
+    backgroundColor: 'transparent',
     alignItems: 'center',
+    minWidth: 70,
   },
   surrenderButtonText: {
-    color: Colors.textSecondary,
+    color: Colors.textMuted,
     fontSize: FontSize.sm,
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
+  // 確定: メインCTA（大きく・鮮やか）
   confirmButton: {
+    flex: 1,
     backgroundColor: Colors.blue,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: 10,
-    minWidth: 80,
+    paddingVertical: Spacing.md + 2,
+    borderRadius: Radius.lg,
     alignItems: 'center',
   },
   confirmButtonDisabled: {
@@ -439,7 +448,8 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: Colors.white,
-    fontSize: FontSize.md,
-    fontWeight: '700',
+    fontSize: FontSize.lg,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
 });
