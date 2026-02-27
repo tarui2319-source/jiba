@@ -5,12 +5,13 @@
  * i18n: 日英切替対応
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
 import { CpuDifficulty } from '../constants/cpuConfig';
 import { RatingState } from '../engine/rankEngine';
 import { RankBadge } from './RankBadge';
+import { HowToPlayOverlay } from './HowToPlayOverlay';
 import { useI18n, Locale } from '../i18n';
 
 export type GameMode = 'local' | 'cpu' | 'online';
@@ -46,6 +47,7 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
   username, onEditUsername,
 }) => {
   const { t, locale, setLocale } = useI18n();
+  const [showHowTo, setShowHowTo] = useState(false);
 
   const startLabel = gameMode === 'online' ? t('matchmaking_start') : t('start');
 
@@ -66,9 +68,24 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
     <View style={styles.overlay}>
       <View style={styles.card}>
 
+        {/* ── 遊び方オーバーレイ ───────────────────────── */}
+        <HowToPlayOverlay
+          visible={showHowTo}
+          onClose={() => setShowHowTo(false)}
+        />
+
         {/* ── タイトルヘッダー ─────────────────────────── */}
         <View style={styles.titleBlock}>
-          <Text style={styles.title}>{t('game_title')}</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{t('game_title')}</Text>
+            <TouchableOpacity
+              style={styles.helpBtn}
+              onPress={() => setShowHowTo(true)}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.helpBtnText}>{t('howto_btn')}</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.subtitle}>{t('game_subtitle')}</Text>
         </View>
 
@@ -206,12 +223,35 @@ const styles = StyleSheet.create({
   titleBlock: {
     alignItems: 'center',
     marginBottom: Spacing.xs,
+    width: '100%',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
   },
   title: {
     fontSize: FontSize.title,
     fontWeight: '900',
     color: Colors.blue,
     letterSpacing: 8,
+  },
+  helpBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: Radius.full,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceHigh,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,  // タイトルテキストのベースラインに合わせる
+  },
+  helpBtnText: {
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+    color: Colors.textSecondary,
   },
   subtitle: {
     fontSize: FontSize.sm,

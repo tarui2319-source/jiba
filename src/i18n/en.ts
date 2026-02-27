@@ -73,4 +73,26 @@ export const en: Record<I18nKey, string> = {
   // ── Rank ───────────────────────────────
   rank_up: '⬆ Promoted!',
   rank_down: '⬇ Demoted',
+
+  // ── How to Play ────────────────────────
+  howto_btn: '?',
+  howto_title: 'How to Play',
+  howto_close: 'Close',
+
+  howto_objective_title: '🎯 Objective',
+  howto_objective_desc: 'Control more squares than your opponent when the game ends — and you win!',
+
+  howto_play_title: '📋 Basic Flow',
+  howto_play_step1: '① Tap a square on the board to select it',
+  howto_play_step2: '② Pick a shape from the WAVE',
+  howto_play_step3: '③ Press "Confirm" to spread your influence',
+
+  howto_influence_title: '✨ Influence',
+  howto_influence_desc: 'Placing a shape spreads influence to surrounding squares, coloring them yours. Stack shapes on the same square to reach even farther!',
+
+  howto_shapes_title: '🔷 Shape Types',
+  howto_shapes_desc: '6 shapes: WEAK, LINE, ELBOW, T, SQUARE, CROSS. Stronger shapes reach a wider area.',
+
+  howto_tip_title: '💡 Tip',
+  howto_tip_desc: "Stack your shapes on the opponent's strong squares to take back control!",
 };
