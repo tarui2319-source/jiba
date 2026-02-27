@@ -48,6 +48,8 @@ export interface UseOnlineGameReturn {
   myPlayer: 'blue' | 'red' | null;
   /** Realtime 再接続中フラグ */
   isReconnecting: boolean;
+  /** MAX_RETRIES 超過で再接続を断念したフラグ */
+  isConnectionFailed: boolean;
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -71,6 +73,8 @@ export function useOnlineGame({
 
   /** 再接続中フラグ */
   const [isReconnecting, setIsReconnecting] = useState(false);
+  /** MAX_RETRIES 超過で接続断念フラグ */
+  const [isConnectionFailed, setIsConnectionFailed] = useState(false);
 
   // ── 相手手番適用ヘルパー ──────────────────────────────────
   const applyOpponentMove = useCallback((row: MoveRow) => {
@@ -134,7 +138,11 @@ export function useOnlineGame({
             (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED')
             && !roomClosedRef.current
           ) {
-            if (retries >= MAX_RECONNECT_RETRIES) return;
+            if (retries >= MAX_RECONNECT_RETRIES) {
+              setIsReconnecting(false);
+              setIsConnectionFailed(true);
+              return;
+            }
             retries++;
             setIsReconnecting(true);
             setTimeout(() => {
@@ -210,5 +218,6 @@ export function useOnlineGame({
     isOnlineGame: matchResult !== null,
     myPlayer: matchResult?.myPlayer ?? null,
     isReconnecting,
+    isConnectionFailed,
   };
 }

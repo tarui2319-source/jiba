@@ -2,17 +2,16 @@
  * JIBA — SetupOverlay コンポーネント
  * ゲーム開始前・対局後に表示する対戦モード・難易度選択UI。
  * MVP8-A: タイトルビジュアル強化・クリーンレイアウト
+ * i18n: 日英切替対応
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
-import {
-  CpuDifficulty,
-  CPU_DIFFICULTY_LABELS,
-} from '../constants/cpuConfig';
+import { CpuDifficulty } from '../constants/cpuConfig';
 import { RatingState } from '../engine/rankEngine';
 import { RankBadge } from './RankBadge';
+import { useI18n, Locale } from '../i18n';
 
 export type GameMode = 'local' | 'cpu' | 'online';
 
@@ -27,16 +26,36 @@ interface SetupOverlayProps {
 
 const DIFFICULTIES: CpuDifficulty[] = [1, 2, 3, 4];
 
-const MODE_BUTTONS: { mode: GameMode; label: string; emoji: string }[] = [
-  { mode: 'local',  label: '2人対戦', emoji: '👥' },
-  { mode: 'cpu',    label: 'CPU対戦', emoji: '🤖' },
-  { mode: 'online', label: 'オンライン', emoji: '🌐' },
+const MODE_EMOJIS: Record<GameMode, string> = {
+  local: '👥',
+  cpu: '🤖',
+  online: '🌐',
+};
+
+const LOCALES: { value: Locale; label: string }[] = [
+  { value: 'ja', label: '日本語' },
+  { value: 'en', label: 'English' },
 ];
 
 export const SetupOverlay = React.memo<SetupOverlayProps>(({
   gameMode, cpuDifficulty, onSetGameMode, onSetDifficulty, onStart, rating,
 }) => {
-  const startLabel = gameMode === 'online' ? 'マッチング開始' : 'スタート';
+  const { t, locale, setLocale } = useI18n();
+
+  const startLabel = gameMode === 'online' ? t('matchmaking_start') : t('start');
+
+  const modeButtons = useMemo(() => [
+    { mode: 'local'  as GameMode, label: t('mode_local') },
+    { mode: 'cpu'    as GameMode, label: t('mode_cpu') },
+    { mode: 'online' as GameMode, label: t('mode_online') },
+  ], [t]);
+
+  const diffLabels: Record<CpuDifficulty, string> = useMemo(() => ({
+    1: t('diff_1'),
+    2: t('diff_2'),
+    3: t('diff_3'),
+    4: t('diff_4'),
+  }), [t]);
 
   return (
     <View style={styles.overlay}>
@@ -44,23 +63,23 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
 
         {/* ── タイトルヘッダー ─────────────────────────── */}
         <View style={styles.titleBlock}>
-          <Text style={styles.title}>JIBA</Text>
-          <Text style={styles.subtitle}>陣地争い戦略ゲーム</Text>
+          <Text style={styles.title}>{t('game_title')}</Text>
+          <Text style={styles.subtitle}>{t('game_subtitle')}</Text>
         </View>
 
         {/* ── 段位バッジ ───────────────────────────────── */}
         {rating && (
           <View style={styles.rankCard}>
-            <Text style={styles.rankLabel}>あなたの段位</Text>
+            <Text style={styles.rankLabel}>{t('your_rank')}</Text>
             <RankBadge rating={rating} size="normal" />
           </View>
         )}
 
         {/* ── 対戦モード ───────────────────────────────── */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>対戦モード</Text>
+          <Text style={styles.sectionLabel}>{t('battle_mode')}</Text>
           <View style={styles.modeRow}>
-            {MODE_BUTTONS.map(({ mode, label, emoji }) => {
+            {modeButtons.map(({ mode, label }) => {
               const active = gameMode === mode;
               return (
                 <TouchableOpacity
@@ -69,7 +88,7 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
                   onPress={() => onSetGameMode(mode)}
                   activeOpacity={0.75}
                 >
-                  <Text style={styles.modeEmoji}>{emoji}</Text>
+                  <Text style={styles.modeEmoji}>{MODE_EMOJIS[mode]}</Text>
                   <Text style={[styles.modeText, active && styles.modeTextActive]}>
                     {label}
                   </Text>
@@ -82,7 +101,7 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
         {/* ── CPU難易度 ────────────────────────────────── */}
         {gameMode === 'cpu' && (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>CPU難易度</Text>
+            <Text style={styles.sectionLabel}>{t('cpu_difficulty')}</Text>
             <View style={styles.diffRow}>
               {DIFFICULTIES.map((lv) => {
                 const active = cpuDifficulty === lv;
@@ -94,7 +113,7 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
                     activeOpacity={0.75}
                   >
                     <Text style={[styles.diffText, active && styles.diffTextActive]}>
-                      {CPU_DIFFICULTY_LABELS[lv]}
+                      {diffLabels[lv]}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -102,6 +121,28 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
             </View>
           </View>
         )}
+
+        {/* ── 言語切替 ────────────────────────────────── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{t('language')}</Text>
+          <View style={styles.langRow}>
+            {LOCALES.map(({ value, label }) => {
+              const active = locale === value;
+              return (
+                <TouchableOpacity
+                  key={value}
+                  style={[styles.langBtn, active && styles.langBtnActive]}
+                  onPress={() => setLocale(value)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[styles.langText, active && styles.langTextActive]}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
 
         {/* ── スタートボタン ───────────────────────────── */}
         <TouchableOpacity
@@ -246,6 +287,33 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   diffTextActive: {
+    color: Colors.white,
+  },
+
+  // 言語切替
+  langRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  langBtn: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.bg,
+    alignItems: 'center',
+  },
+  langBtnActive: {
+    backgroundColor: Colors.blue,
+    borderColor: Colors.blue,
+  },
+  langText: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  langTextActive: {
     color: Colors.white,
   },
 

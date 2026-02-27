@@ -9,6 +9,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ShapeKind } from '../engine/types';
 import { ALL_SHAPES, SHAPE_DEFS } from '../engine/shapes';
 import { Colors, FontSize, Spacing, MIN_TAP } from '../constants/theme';
+import { useI18n } from '../i18n';
 
 const MINI_CELL = 11;
 const MINI_GAP  = 1.5;
@@ -65,26 +66,29 @@ interface ShapeSelectorProps {
 
 export const ShapeSelector = React.memo<ShapeSelectorProps>(({
   selectedShape, onSelect,
-}) => (
-  <View style={styles.container}>
-    <Text style={styles.label}>WAVE</Text>
-    <View style={styles.row}>
-      {(ALL_SHAPES as ShapeKind[]).map((shape) => {
-        const isSel = selectedShape === shape;
-        return (
-          <TouchableOpacity
-            key={shape}
-            onPress={() => onSelect(shape)}
-            activeOpacity={0.7}
-            style={[styles.button, isSel && styles.buttonSelected]}
-          >
-            <ShapePreview shape={shape} isSelected={isSel} />
-          </TouchableOpacity>
-        );
-      })}
+}) => {
+  const { t } = useI18n();
+  return (
+    <View style={styles.container}>
+      <Text style={styles.label}>{t('wave')}</Text>
+      <View style={styles.row}>
+        {(ALL_SHAPES as ShapeKind[]).map((shape) => {
+          const isSel = selectedShape === shape;
+          return (
+            <TouchableOpacity
+              key={shape}
+              onPress={() => onSelect(shape)}
+              activeOpacity={0.7}
+              style={[styles.button, isSel && styles.buttonSelected]}
+            >
+              <ShapePreview shape={shape} isSelected={isSel} />
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
-  </View>
-));
+  );
+});
 
 ShapeSelector.displayName = 'ShapeSelector';
 

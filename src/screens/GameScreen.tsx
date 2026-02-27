@@ -31,10 +31,13 @@ import { ResultOverlay } from '../components/ResultOverlay';
 import { SetupOverlay, GameMode } from '../components/SetupOverlay';
 import { MatchmakingOverlay } from '../components/MatchmakingOverlay';
 import { ReconnectBanner } from '../components/ReconnectBanner';
+import { ConnectionFailedBanner } from '../components/ConnectionFailedBanner';
 import { Colors, FontSize, Spacing, Radius, MIN_TAP } from '../constants/theme';
 import { DEFAULT_MODE } from '../constants/gameConfig';
 import { CpuDifficulty } from '../constants/cpuConfig';
 import { MatchResult } from '../network/networkTypes';
+import { useI18n } from '../i18n';
+import { useSoundEffects } from '../hooks/useSoundEffects';
 
 // expo-haptics は利用可能な場合のみ使用（Web では無視）
 let Haptics: { impactAsync: (style: string) => Promise<void>; notificationAsync: (type: string) => Promise<void> } | null = null;
@@ -49,6 +52,9 @@ try {
 const CPU_SIDE = 'red' as const;
 
 export function GameScreen() {
+  const { t } = useI18n();
+  const { playPlace, playWin, playLoss, playDraw, playRankUp } = useSoundEffects();
+
   const gameStateReturn = useGameState(DEFAULT_MODE);
   const { gameState, applyMove, applyRandomMove, resetGame, surrender, size } = gameStateReturn;
   const { board, turnState, influence, result, surrenderedBy } = gameState;
@@ -81,7 +87,7 @@ export function GameScreen() {
   // オンラインゲーム（useOnlineGame）
   // ──────────────────────────────────────────────────────────────────
 
-  const { applyOnlineMove, surrenderOnline, isOnlineGame, myPlayer, isReconnecting } = useOnlineGame({
+  const { applyOnlineMove, surrenderOnline, isOnlineGame, myPlayer, isReconnecting, isConnectionFailed } = useOnlineGame({
     gameStateReturn,
     matchResult: gameMode === 'online' ? matchResult : null,
   });
@@ -216,9 +222,10 @@ export function GameScreen() {
     const actionType = cell.anchors.length === 0 ? 'build' : 'stack';
 
     execMove({ type: actionType, row, col, shape: selectedShape! });
+    playPlace();
     setSelectedCell(null);
     setSelectedShape(null);
-  }, [canConfirm, isPlaying, selectedCell, selectedShape, board, execMove]);
+  }, [canConfirm, isPlaying, selectedCell, selectedShape, board, execMove, playPlace]);
 
   // ──────────────────────────────────────────────────────────────────
   // スコア集計（表示用）
@@ -258,6 +265,29 @@ export function GameScreen() {
   const handleRetryMatchmaking = useCallback(() => {
     startMatchmaking(DEFAULT_MODE);
   }, [startMatchmaking]);
+
+  // ──────────────────────────────────────────────────────────────────
+  // SE: 結果音
+  // ──────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!result) return;
+    const mySide = isOnlineGame ? myPlayer : 'blue';
+    if (result.winner === 'draw') {
+      playDraw();
+    } else if (result.winner === mySide) {
+      playWin();
+    } else {
+      playLoss();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result]);
+
+  // SE: 昇段音
+  useEffect(() => {
+    if (ratingDelta?.direction === 'up') playRankUp();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ratingDelta]);
 
   // ──────────────────────────────────────────────────────────────────
   // 降参ハンドラ（インライン確認UI）
@@ -343,14 +373,14 @@ export function GameScreen() {
                 onPress={handleSurrenderCancel}
                 activeOpacity={0.8}
               >
-                <Text style={styles.cancelButtonText}>やめる</Text>
+                <Text style={styles.cancelButtonText}>{t('surrender_cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.confirmButton, styles.confirmButtonSurrender]}
                 onPress={handleSurrenderConfirm}
                 activeOpacity={0.8}
               >
-                <Text style={styles.confirmButtonText}>本当に降参</Text>
+                <Text style={styles.confirmButtonText}>{t('surrender_confirm')}</Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -363,7 +393,7 @@ export function GameScreen() {
                 disabled={!isPlaying}
                 activeOpacity={0.8}
               >
-                <Text style={styles.surrenderButtonText}>降参</Text>
+                <Text style={styles.surrenderButtonText}>{t('surrender')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -373,7 +403,7 @@ export function GameScreen() {
                 activeOpacity={0.8}
               >
                 <Text style={styles.confirmButtonText}>
-                  {isCpuThinking ? '🤖' : (!isMyTurn ? '待機中' : '確定')}
+                  {isCpuThinking ? '🤖' : (!isMyTurn ? t('waiting') : t('confirm'))}
                 </Text>
               </TouchableOpacity>
             </>
@@ -382,6 +412,11 @@ export function GameScreen() {
 
         {/* 再接続バナー（オンライン時のみ, zIndex: 200） */}
         {isOnlineGame && isReconnecting && <ReconnectBanner />}
+
+        {/* 接続失敗オーバーレイ（MAX_RETRIES超過, zIndex: 500） */}
+        {isOnlineGame && isConnectionFailed && (
+          <ConnectionFailedBanner onGoHome={handleRestart} />
+        )}
 
         {/* 結果オーバーレイ */}
         {result && (

@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+ios/Pods/
+android/build/
+dist/
+coverage/
+.env
+.env.local
+.env.production
+*.pem
+*.key
+.claude/worktrees/

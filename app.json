@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "JIBA",
+    "slug": "jiba",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.jiba.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0a"
+      },
+      "package": "com.jiba.app"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "plugins": [
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}

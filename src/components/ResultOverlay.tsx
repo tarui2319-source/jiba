@@ -10,6 +10,7 @@ import { GameResult, Player } from '../engine/types';
 import { RatingState, RatingDelta } from '../engine/rankEngine';
 import { RankBadge } from './RankBadge';
 import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
+import { useI18n } from '../i18n';
 
 interface ResultOverlayProps {
   result: GameResult;
@@ -22,6 +23,8 @@ interface ResultOverlayProps {
 export const ResultOverlay = React.memo<ResultOverlayProps>(({
   result, onRestart, ratingDelta, currentRating, surrenderedBy,
 }) => {
+  const { t } = useI18n();
+
   // ── フェードイン ────────────────────────────────────
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -61,10 +64,10 @@ export const ResultOverlay = React.memo<ResultOverlayProps>(({
                      : '🤝';
 
   const resultMain   = isSurrender
-    ? `${surrenderedBy === 'blue' ? 'BLUE' : 'RED'} が降参`
-    : isWinnerBlue  ? 'BLUE の勝ち！'
-    : isWinnerRed   ? 'RED の勝ち！'
-    : '引き分け';
+    ? (surrenderedBy === 'blue' ? t('blue_surrender') : t('red_surrender'))
+    : isWinnerBlue  ? t('blue_wins')
+    : isWinnerRed   ? t('red_wins')
+    : t('draw');
 
   // スコア合計でバーの幅比率を計算
   const total = result.blueCount + result.redCount;
@@ -94,9 +97,9 @@ export const ResultOverlay = React.memo<ResultOverlayProps>(({
         <View style={styles.scoreSection}>
           <View style={styles.scoreRow}>
             <Text style={[styles.scoreNum, { color: Colors.blueLight }]}>{result.blueCount}</Text>
-            <Text style={styles.scoreLabel}>マス</Text>
+            <Text style={styles.scoreLabel}>{t('squares')}</Text>
             <Text style={styles.scoreSep}>vs</Text>
-            <Text style={styles.scoreLabel}>マス</Text>
+            <Text style={styles.scoreLabel}>{t('squares')}</Text>
             <Text style={[styles.scoreNum, { color: Colors.redLight }]}>{result.redCount}</Text>
           </View>
 
@@ -108,11 +111,11 @@ export const ResultOverlay = React.memo<ResultOverlayProps>(({
 
           <View style={styles.scoreRow}>
             <Text style={[styles.powerText, { color: Colors.blueLight }]}>
-              力: {result.bluePower}
+              {t('power')}{result.bluePower}
             </Text>
             <View style={{ flex: 1 }} />
             <Text style={[styles.powerText, { color: Colors.redLight }]}>
-              力: {result.redPower}
+              {t('power')}{result.redPower}
             </Text>
           </View>
         </View>
@@ -120,7 +123,7 @@ export const ResultOverlay = React.memo<ResultOverlayProps>(({
         {/* ── 段位変動 ────────────────────────────────── */}
         {currentRating && (
           <View style={styles.rankSection}>
-            <Text style={styles.rankSectionLabel}>あなたの段位</Text>
+            <Text style={styles.rankSectionLabel}>{t('your_rank')}</Text>
             <RankBadge rating={currentRating} size="normal" delta={ratingDelta} />
           </View>
         )}
@@ -131,7 +134,7 @@ export const ResultOverlay = React.memo<ResultOverlayProps>(({
           onPress={onRestart}
           activeOpacity={0.8}
         >
-          <Text style={styles.restartBtnText}>もう一度</Text>
+          <Text style={styles.restartBtnText}>{t('restart')}</Text>
         </TouchableOpacity>
       </Animated.View>
     </Animated.View>

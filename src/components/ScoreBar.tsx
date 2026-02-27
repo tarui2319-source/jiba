@@ -10,6 +10,7 @@ import { Player } from '../engine/types';
 import { RatingState } from '../engine/rankEngine';
 import { RankBadge } from './RankBadge';
 import { Colors, FontSize, Spacing } from '../constants/theme';
+import { useI18n } from '../i18n';
 
 interface ScoreBarProps {
   blueCount: number;
@@ -26,6 +27,7 @@ export const ScoreBar = React.memo<ScoreBarProps>(({
   blueCount, redCount, currentPlayer, timerSeconds, isTimerWarning, movesLeft,
   myPlayer, myRating,
 }) => {
+  const { t } = useI18n();
   const isBlueActive = currentPlayer === 'blue';
   const isRedActive  = currentPlayer === 'red';
 
@@ -43,7 +45,7 @@ export const ScoreBar = React.memo<ScoreBarProps>(({
           {blueCount}
         </Text>
         <Text style={[styles.movesLeft, { color: isBlueActive ? Colors.textSecondary : Colors.textMuted }]}>
-          残{movesLeft.blue}手
+          {t('moves_left', { n: movesLeft.blue })}
         </Text>
         {myPlayer === 'blue' && myRating && (
           <RankBadge rating={myRating} size="compact" />
@@ -79,7 +81,7 @@ export const ScoreBar = React.memo<ScoreBarProps>(({
           {redCount}
         </Text>
         <Text style={[styles.movesLeft, { color: isRedActive ? Colors.textSecondary : Colors.textMuted }]}>
-          残{movesLeft.red}手
+          {t('moves_left', { n: movesLeft.red })}
         </Text>
         {myPlayer === 'red' && myRating && (
           <RankBadge rating={myRating} size="compact" />
