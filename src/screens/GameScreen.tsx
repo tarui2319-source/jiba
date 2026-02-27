@@ -32,7 +32,7 @@ import { ResultOverlay } from '../components/ResultOverlay';
 import { SetupOverlay, GameMode } from '../components/SetupOverlay';
 import { MatchmakingOverlay } from '../components/MatchmakingOverlay';
 import { ReconnectBanner } from '../components/ReconnectBanner';
-import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
+import { Colors, FontSize, Spacing, Radius, MIN_TAP } from '../constants/theme';
 import { DEFAULT_MODE } from '../constants/gameConfig';
 import { CpuDifficulty } from '../constants/cpuConfig';
 import { MatchResult } from '../network/networkTypes';
@@ -418,19 +418,21 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
     gap: Spacing.sm,
   },
-  // 降参: ゴーストボタン（控えめ）
+  // 降参: ゴーストボタン（赤みで危険アクションを明示）
   surrenderButton: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.red,
     backgroundColor: 'transparent',
     alignItems: 'center',
+    justifyContent: 'center',
     minWidth: 70,
+    minHeight: MIN_TAP,
   },
   surrenderButtonText: {
-    color: Colors.textMuted,
+    color: Colors.red,
     fontSize: FontSize.sm,
     fontWeight: '600',
     letterSpacing: 0.5,
