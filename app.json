@@ -33,6 +33,9 @@
     "plugins": [
       "expo-asset",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "privacyPolicyUrl": "https://tarui2319.github.io/jiba/privacy-policy.html"
+    }
   }
 }
