@@ -47,7 +47,8 @@ type CellColor =
   | 'red'
   | 'selected'
   | 'influence'
-  | 'influence_strong';
+  | 'influence_strong'
+  | 'red_inf';        // RED の影響圏（半透明）
 
 const CELL_BG: Record<CellColor, string> = {
   empty:            Colors.bg,
@@ -57,6 +58,7 @@ const CELL_BG: Record<CellColor, string> = {
   selected:         Colors.bg,
   influence:        'rgba(79,142,247,0.28)',
   influence_strong: 'rgba(79,142,247,0.52)',
+  red_inf:          'rgba(240,82,82,0.28)',
 };
 
 interface MiniBoardProps {
@@ -269,21 +271,28 @@ const INF_LABELS: (string | null)[][] = [
   [null, null, null, null, null],
 ];
 
-const InfluenceIll = memo(() => (
-  <View style={illS.wrap}>
-    <MiniBoardLabeled board={INF_BOARD} labels={INF_LABELS} cellSize={26} />
-    <View style={illS.legend}>
-      <View style={illS.legendItem}>
-        <View style={[illS.legendDot, { backgroundColor: Colors.blue }]} />
-        <Text style={illS.legendLabel}>⚓ アンカー（パワーなし）</Text>
-      </View>
-      <View style={illS.legendItem}>
-        <View style={[illS.legendDot, { backgroundColor: CELL_BG.influence }]} />
-        <Text style={illS.legendLabel}>パワー 2</Text>
+const InfluenceIll = memo(() => {
+  const { locale } = useI18n();
+  const anchorLeg = locale === 'ja'
+    ? '⚓ アンカーマス（敵に攻められない）'
+    : '⚓ Anchor (cannot be attacked)';
+  const powerLeg = locale === 'ja' ? 'パワー 2' : 'Power: 2';
+  return (
+    <View style={illS.wrap}>
+      <MiniBoardLabeled board={INF_BOARD} labels={INF_LABELS} cellSize={26} />
+      <View style={illS.legend}>
+        <View style={illS.legendItem}>
+          <View style={[illS.legendDot, { backgroundColor: Colors.blue }]} />
+          <Text style={illS.legendLabel}>{anchorLeg}</Text>
+        </View>
+        <View style={illS.legendItem}>
+          <View style={[illS.legendDot, { backgroundColor: CELL_BG.influence }]} />
+          <Text style={illS.legendLabel}>{powerLeg}</Text>
+        </View>
       </View>
     </View>
-  </View>
-));
+  );
+});
 InfluenceIll.displayName = 'InfluenceIll';
 
 // ──────────────────────────────────────────────────────────────
@@ -317,58 +326,119 @@ const PlacementIll = memo(() => (
 PlacementIll.displayName = 'PlacementIll';
 
 // ──────────────────────────────────────────────────────────────
-// イラスト 6 — マスの所属が決まるルール（パワー比較テーブル）
+// イラスト 6 — ケースで理解するカルーセル（3事例）
 // ──────────────────────────────────────────────────────────────
 
-const COMP_DATA: Array<{ b: number; r: number; w: 'blue' | 'red' | 'neutral' }> = [
-  { b: 3, r: 1, w: 'blue' },
-  { b: 1, r: 3, w: 'red' },
-  { b: 2, r: 2, w: 'neutral' },
+// Case 1: アンカー設置 → パワーが広がる（mid_cross, 5×5）
+const CASE1_BOARD: CellColor[][] = [
+  ['empty', 'empty',     'empty',     'empty',     'empty'],
+  ['empty', 'empty',     'influence', 'empty',     'empty'],
+  ['empty', 'influence', 'blue',      'influence', 'empty'],
+  ['empty', 'empty',     'influence', 'empty',     'empty'],
+  ['empty', 'empty',     'empty',     'empty',     'empty'],
+];
+const CASE1_LABELS: (string | null)[][] = [
+  [null, null, null, null, null],
+  [null, null, '2',  null, null],
+  [null, '2',  '⚓', '2',  null],
+  [null, null, '2',  null, null],
+  [null, null, null, null, null],
 ];
 
-const TurnIll = memo(() => (
-  <View style={illS.wrap}>
-    <View style={illS.compTable}>
-      {/* ヘッダー行 */}
-      <View style={illS.compRow}>
-        <Text style={[illS.compCellNum, illS.compHead, { color: Colors.blue }]}>BLUE</Text>
-        <Text style={[illS.compVsCell, illS.compHead]}>{' '}</Text>
-        <Text style={[illS.compCellNum, illS.compHead, { color: Colors.red }]}>RED</Text>
-        <Text style={[illS.compCellRes, illS.compHead]}>結果</Text>
+// Case 3: アンカーマスは攻められない（3×3）
+// RED パワー3 に囲まれても BLUE アンカーは守られる
+const CASE3_BOARD: CellColor[][] = [
+  ['red_inf', 'red_inf', 'red_inf'],
+  ['red_inf', 'blue',    'red_inf'],
+  ['red_inf', 'red_inf', 'red_inf'],
+];
+const CASE3_LABELS: (string | null)[][] = [
+  ['3', '3', '3'],
+  ['3', '⚓', '3'],
+  ['3', '3', '3'],
+];
+
+const ExampleCarousel = memo(() => {
+  const { locale } = useI18n();
+  const [caseIdx, setCaseIdx] = useState(0);
+
+  const cases = locale === 'ja'
+    ? [
+        { title: 'パワーが広がる',       cap: 'アンカーを置くと、シェイプに合わせてパワーが広がる' },
+        { title: 'パワーが高い方が勝つ', cap: 'BLUE 4 > RED 2 → そのマスはBLUEのものに！' },
+        { title: 'アンカーは守られる',   cap: 'REDに高いパワーがあっても、アンカーマスは攻められない' },
+      ]
+    : [
+        { title: 'Power Spreads',     cap: 'Placing an anchor spreads power based on the shape' },
+        { title: 'Higher Power Wins', cap: 'BLUE 4 > RED 2 → BLUE claims that cell!' },
+        { title: 'Anchor Protected',  cap: "Even with more power, RED can't attack the anchor cell" },
+      ];
+
+  const current = cases[caseIdx];
+
+  return (
+    <View style={illS.carouselWrap}>
+      {/* ── ケースナビゲーション ── */}
+      <View style={illS.caseNavRow}>
+        <TouchableOpacity
+          onPress={() => setCaseIdx(prev => Math.max(prev - 1, 0))}
+          style={[illS.caseNavArrow, caseIdx === 0 && { opacity: 0.2 }]}
+          disabled={caseIdx === 0}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={illS.caseNavArrowText}>‹</Text>
+        </TouchableOpacity>
+        <Text style={illS.caseNavTitle}>{current.title}</Text>
+        <TouchableOpacity
+          onPress={() => setCaseIdx(prev => Math.min(prev + 1, 2))}
+          style={[illS.caseNavArrow, caseIdx === 2 && { opacity: 0.2 }]}
+          disabled={caseIdx === 2}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={illS.caseNavArrowText}>›</Text>
+        </TouchableOpacity>
       </View>
-      {/* 区切り線 */}
-      <View style={{ height: 1, backgroundColor: Colors.border }} />
-      {/* データ行 */}
-      {COMP_DATA.map((row, i) => (
-        <View key={i} style={illS.compRow}>
-          <Text style={[illS.compCellNum, illS.compNumText, { color: Colors.blue }]}>
-            {row.b}
-          </Text>
-          <Text style={[illS.compVsCell, illS.compVsText]}>vs</Text>
-          <Text style={[illS.compCellNum, illS.compNumText, { color: Colors.red }]}>
-            {row.r}
-          </Text>
-          <View style={[
-            illS.compCellRes,
-            illS.compBadge,
-            row.w === 'blue'    ? { backgroundColor: Colors.blue } :
-            row.w === 'red'     ? { backgroundColor: Colors.red  } :
-            { backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border },
-          ]}>
-            <Text style={{
-              color: row.w === 'neutral' ? Colors.textMuted : Colors.white,
-              fontSize: FontSize.sm,
-              fontWeight: '800',
-            }}>
-              {row.w === 'blue' ? 'BLUE' : row.w === 'red' ? 'RED' : '中立'}
-            </Text>
+
+      {/* ── ドット ── */}
+      <View style={{ flexDirection: 'row', gap: 5 }}>
+        {[0, 1, 2].map(i => (
+          <View key={i} style={[illS.caseDot, i === caseIdx && illS.caseDotActive]} />
+        ))}
+      </View>
+
+      {/* ── イラスト ── */}
+      {caseIdx === 0 && (
+        <MiniBoardLabeled board={CASE1_BOARD} labels={CASE1_LABELS} cellSize={14} />
+      )}
+      {caseIdx === 1 && (
+        <View style={illS.matchupRow}>
+          <View style={[illS.matchupBox, { backgroundColor: Colors.blue }]}>
+            <Text style={illS.matchupNum}>4</Text>
+          </View>
+          <Text style={illS.matchupVsText}>vs</Text>
+          <View style={[illS.matchupBox, { backgroundColor: Colors.red }]}>
+            <Text style={illS.matchupNum}>2</Text>
+          </View>
+          <Text style={illS.matchupArrowText}>→</Text>
+          <View style={[illS.matchupBox, {
+            backgroundColor: Colors.blue,
+            borderWidth: 2,
+            borderColor: Colors.selectedBorder,
+          }]}>
+            <Text style={illS.matchupCheckText}>✓</Text>
           </View>
         </View>
-      ))}
+      )}
+      {caseIdx === 2 && (
+        <MiniBoardLabeled board={CASE3_BOARD} labels={CASE3_LABELS} cellSize={22} />
+      )}
+
+      {/* ── キャプション ── */}
+      <Text style={illS.caseCaption}>{current.cap}</Text>
     </View>
-  </View>
-));
-TurnIll.displayName = 'TurnIll';
+  );
+});
+ExampleCarousel.displayName = 'ExampleCarousel';
 
 // ──────────────────────────────────────────────────────────────
 // イラスト共通スタイル
@@ -414,16 +484,22 @@ const illS = StyleSheet.create({
   shapeCardName:       { color: Colors.textMuted, fontSize: 8 },
   shapeCardNameActive: { color: Colors.blue },
 
-  // ── Slide 6: パワー比較テーブル ──────────────────────────────
-  compTable:   { gap: 6 },
-  compRow:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  compCellNum: { width: 52, textAlign: 'center' },
-  compVsCell:  { width: 24, textAlign: 'center' },
-  compCellRes: { width: 56 },
-  compHead:    { fontSize: FontSize.xs, fontWeight: '800', color: Colors.textMuted, textAlign: 'center' },
-  compNumText: { fontSize: 26, fontWeight: '900', lineHeight: 32, textAlign: 'center' },
-  compVsText:  { color: Colors.textMuted, fontSize: FontSize.xs, textAlign: 'center' },
-  compBadge:   { borderRadius: Radius.sm, paddingVertical: 4, alignItems: 'center', justifyContent: 'center' },
+  // ── Slide 6: ケースカルーセル ─────────────────────────────────
+  carouselWrap:      { alignItems: 'center', gap: 6 },
+  caseNavRow:        { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, width: '100%' },
+  caseNavArrow:      { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
+  caseNavArrowText:  { color: Colors.blue, fontSize: 22, fontWeight: '700', lineHeight: 28 },
+  caseNavTitle:      { flex: 1, textAlign: 'center', color: Colors.textPrimary, fontSize: FontSize.sm, fontWeight: '800' },
+  caseDot:           { width: 6, height: 6, borderRadius: Radius.full, backgroundColor: Colors.border },
+  caseDotActive:     { width: 16, backgroundColor: Colors.blue },
+  caseCaption:       { color: Colors.textSecondary, fontSize: FontSize.xs, textAlign: 'center', paddingHorizontal: Spacing.md },
+  // Matchup (case 2)
+  matchupRow:        { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  matchupBox:        { width: 44, height: 44, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center' },
+  matchupNum:        { color: Colors.white, fontSize: 22, fontWeight: '900' },
+  matchupVsText:     { color: Colors.textMuted, fontSize: FontSize.xs, fontWeight: '700' },
+  matchupArrowText:  { color: Colors.textMuted, fontSize: FontSize.md, fontWeight: '700' },
+  matchupCheckText:  { color: Colors.white, fontSize: 20, fontWeight: '900' },
 });
 
 // ──────────────────────────────────────────────────────────────
@@ -436,7 +512,7 @@ const ILLUSTRATIONS: React.ComponentType[] = [
   SelectShapeIll,
   InfluenceIll,
   PlacementIll,
-  TurnIll,
+  ExampleCarousel,
 ];
 
 const SLIDE_KEYS: Array<{ title: I18nKey; desc: I18nKey }> = [
