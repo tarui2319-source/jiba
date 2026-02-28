@@ -94,14 +94,14 @@ export const en: Record<I18nKey, string> = {
   tut_2_desc: 'Tap any square on the board to choose where to place your shape',
 
   tut_3_title: '② Pick a Shape',
-  tut_3_desc: 'Choose any shape from the WAVE. Different shapes spread power differently!',
+  tut_3_desc: 'Choose from 7 shapes. Each has a different power spread and strength!',
 
   tut_4_title: '③ Spread Power',
-  tut_4_desc: 'Press "Confirm" to spread power from the shape to surrounding squares',
+  tut_4_desc: 'Press "Confirm" to spread power. The anchor (⚓) itself has no power.',
 
-  tut_5_title: '④ Placement Rules',
-  tut_5_desc: 'Place on any square you own. Stack on the same square to boost power!',
+  tut_5_title: '⚓ Anchor Rules',
+  tut_5_desc: 'You can place on any square you control.',
 
-  tut_6_title: '⑤ Turns & Power Calculation',
-  tut_6_desc: "After your turn, opponent plays. Compare power to decide each square's owner!",
+  tut_6_title: '⑤ How Square Ownership Works',
+  tut_6_desc: 'BLUE and RED power are compared each turn. Higher power claims the square!',
 };
