@@ -49,7 +49,7 @@ export const en: Record<I18nKey, string> = {
   blue_surrender: 'BLUE Resigned',
   red_surrender: 'RED Resigned',
   squares: 'sq',
-  power: 'Pow: ',
+  power: 'Power: ',
 
   // ── Matchmaking ────────────────────────
   searching: 'Finding an opponent...',
@@ -94,11 +94,14 @@ export const en: Record<I18nKey, string> = {
   tut_2_desc: 'Tap any square on the board to choose where to place your shape',
 
   tut_3_title: '② Pick a Shape',
-  tut_3_desc: 'Choose any shape from the WAVE. Different shapes spread influence differently!',
+  tut_3_desc: 'Choose any shape from the WAVE. Different shapes spread power differently!',
 
-  tut_4_title: '③ Spread Influence',
-  tut_4_desc: 'Press "Confirm" to place the shape and spread influence to surrounding squares',
+  tut_4_title: '③ Spread Power',
+  tut_4_desc: 'Press "Confirm" to spread power from the shape to surrounding squares',
 
-  tut_5_title: '🔄 Stack',
-  tut_5_desc: 'Place multiple shapes on the same square. The more stacks, the farther the influence spreads!',
+  tut_5_title: '④ Placement Rules',
+  tut_5_desc: 'Place on any square you own. Stack on the same square to boost power!',
+
+  tut_6_title: '⑤ Turns & Power Calculation',
+  tut_6_desc: "After your turn, opponent plays. Compare power to decide each square's owner!",
 };
