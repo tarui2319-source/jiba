@@ -97,11 +97,11 @@ export const en: Record<I18nKey, string> = {
   tut_3_desc: 'Choose from 7 shapes. Each has a different power spread and strength!',
 
   tut_4_title: '③ Spread Power',
-  tut_4_desc: 'Press "Confirm" to spread power. The anchor (⚓) itself has no power.',
+  tut_4_desc: 'Placing an anchor spreads power to nearby cells. The anchor cell cannot be attacked by the enemy!',
 
   tut_5_title: '⚓ Anchor Rules',
   tut_5_desc: 'You can place on any square you control.',
 
-  tut_6_title: '⑤ How Square Ownership Works',
-  tut_6_desc: 'BLUE and RED power are compared each turn. Higher power claims the square!',
+  tut_6_title: 'Learn by Example',
+  tut_6_desc: 'Tap the arrows to browse 3 examples',
 };
