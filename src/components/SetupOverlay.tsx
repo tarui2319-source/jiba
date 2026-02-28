@@ -2,7 +2,7 @@
  * JIBA — SetupOverlay コンポーネント
  * ゲーム開始前・対局後に表示する対戦モード・難易度選択UI。
  * MVP8-A: タイトルビジュアル強化・クリーンレイアウト
- * i18n: 日英切替対応
+ * i18n: 日英切替対応（言語設定はMenuOverlay内に移動）
  */
 
 import React, { useMemo, useState } from 'react';
@@ -11,8 +11,8 @@ import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
 import { CpuDifficulty } from '../constants/cpuConfig';
 import { RatingState } from '../engine/rankEngine';
 import { RankBadge } from './RankBadge';
-import { HowToPlayOverlay } from './HowToPlayOverlay';
-import { useI18n, Locale } from '../i18n';
+import { MenuOverlay } from './MenuOverlay';
+import { useI18n } from '../i18n';
 
 export type GameMode = 'local' | 'cpu' | 'online';
 
@@ -25,7 +25,7 @@ interface SetupOverlayProps {
   rating?: RatingState | null;
   /** 設定済みユーザーネーム（null = 未設定） */
   username?: string | null;
-  /** ユーザーネーム編集ボタン押下コールバック */
+  /** ユーザーネーム編集コールバック（UsernameModalを開く） */
   onEditUsername?: () => void;
 }
 
@@ -37,17 +37,12 @@ const MODE_EMOJIS: Record<GameMode, string> = {
   online: '🌐',
 };
 
-const LOCALES: { value: Locale; label: string }[] = [
-  { value: 'ja', label: '日本語' },
-  { value: 'en', label: 'English' },
-];
-
 export const SetupOverlay = React.memo<SetupOverlayProps>(({
   gameMode, cpuDifficulty, onSetGameMode, onSetDifficulty, onStart, rating,
   username, onEditUsername,
 }) => {
-  const { t, locale, setLocale } = useI18n();
-  const [showHowTo, setShowHowTo] = useState(false);
+  const { t } = useI18n();
+  const [showMenu, setShowMenu] = useState(false);
 
   const startLabel = gameMode === 'online' ? t('matchmaking_start') : t('start');
 
@@ -68,10 +63,11 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
     <View style={styles.overlay}>
       <View style={styles.card}>
 
-        {/* ── 遊び方オーバーレイ ───────────────────────── */}
-        <HowToPlayOverlay
-          visible={showHowTo}
-          onClose={() => setShowHowTo(false)}
+        {/* ── メニューオーバーレイ ─────────────────────────── */}
+        <MenuOverlay
+          visible={showMenu}
+          onClose={() => setShowMenu(false)}
+          onEditUsername={onEditUsername ?? (() => {})}
         />
 
         {/* ── タイトルヘッダー ─────────────────────────── */}
@@ -79,11 +75,11 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
           <View style={styles.titleRow}>
             <Text style={styles.title}>{t('game_title')}</Text>
             <TouchableOpacity
-              style={styles.helpBtn}
-              onPress={() => setShowHowTo(true)}
+              style={styles.menuBtn}
+              onPress={() => setShowMenu(true)}
               activeOpacity={0.75}
             >
-              <Text style={styles.helpBtnText}>{t('howto_btn')}</Text>
+              <Text style={styles.menuBtnText}>⚙</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.subtitle}>{t('game_subtitle')}</Text>
@@ -92,24 +88,10 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
         {/* ── 段位バッジ + ユーザーネーム ──────────────── */}
         {rating && (
           <View style={styles.rankCard}>
-            {/* ヘッダー行: 段位ラベル + ユーザーネーム + 編集ボタン */}
-            <View style={styles.rankCardHeader}>
-              <View style={styles.rankCardLeft}>
-                <Text style={styles.rankLabel}>{t('your_rank')}</Text>
-                {username != null && (
-                  <Text style={styles.usernameText}>{username}</Text>
-                )}
-              </View>
-              {onEditUsername != null && (
-                <TouchableOpacity
-                  onPress={onEditUsername}
-                  style={styles.editBtn}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.editBtnText}>✏️ {t('username_edit')}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            {username != null && (
+              <Text style={styles.usernameText}>{username}</Text>
+            )}
+            <Text style={styles.rankLabel}>{t('your_rank')}</Text>
             <RankBadge rating={rating} size="normal" />
           </View>
         )}
@@ -160,28 +142,6 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
             </View>
           </View>
         )}
-
-        {/* ── 言語切替 ────────────────────────────────── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t('language')}</Text>
-          <View style={styles.langRow}>
-            {LOCALES.map(({ value, label }) => {
-              const active = locale === value;
-              return (
-                <TouchableOpacity
-                  key={value}
-                  style={[styles.langBtn, active && styles.langBtnActive]}
-                  onPress={() => setLocale(value)}
-                  activeOpacity={0.75}
-                >
-                  <Text style={[styles.langText, active && styles.langTextActive]}>
-                    {label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
 
         {/* ── スタートボタン ───────────────────────────── */}
         <TouchableOpacity
@@ -237,20 +197,19 @@ const styles = StyleSheet.create({
     color: Colors.blue,
     letterSpacing: 8,
   },
-  helpBtn: {
-    width: 28,
-    height: 28,
+  menuBtn: {
+    width: 30,
+    height: 30,
     borderRadius: Radius.full,
     borderWidth: 1.5,
     borderColor: Colors.border,
     backgroundColor: Colors.surfaceHigh,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 6,  // タイトルテキストのベースラインに合わせる
+    marginTop: 8,
   },
-  helpBtnText: {
-    fontSize: FontSize.sm,
-    fontWeight: '700',
+  menuBtnText: {
+    fontSize: 14,
     color: Colors.textSecondary,
   },
   subtitle: {
@@ -269,40 +228,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    gap: 6,
-  },
-  rankCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  rankCardLeft: {
-    gap: 2,
-    flex: 1,
-  },
-  rankLabel: {
-    fontSize: FontSize.xs,
-    color: Colors.textMuted,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    gap: 4,
+    alignItems: 'flex-start',
   },
   usernameText: {
     fontSize: FontSize.sm,
     color: Colors.textPrimary,
     fontWeight: '700',
   },
-  editBtn: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surfaceHigh,
-  },
-  editBtnText: {
+  rankLabel: {
     fontSize: FontSize.xs,
-    color: Colors.textSecondary,
+    color: Colors.textMuted,
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
 
   // セクション
@@ -376,33 +314,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   diffTextActive: {
-    color: Colors.white,
-  },
-
-  // 言語切替
-  langRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  langBtn: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.bg,
-    alignItems: 'center',
-  },
-  langBtnActive: {
-    backgroundColor: Colors.blue,
-    borderColor: Colors.blue,
-  },
-  langText: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-  },
-  langTextActive: {
     color: Colors.white,
   },
 

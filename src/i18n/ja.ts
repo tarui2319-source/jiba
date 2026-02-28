@@ -72,27 +72,33 @@ export const ja = {
   rank_up: '⬆ 昇段！',
   rank_down: '⬇ 降格',
 
-  // ── 遊び方 ─────────────────────────────
-  howto_btn: '?',
-  howto_title: '遊び方',
-  howto_close: '閉じる',
+  // ── メニュー ───────────────────────────────────────
+  menu_title: 'メニュー',
+  menu_close: '閉じる',
+  menu_back: '戻る',
+  menu_rules: 'ルール説明',
+  menu_username_item: '名前変更',
+  menu_language_item: '言語設定',
 
-  howto_objective_title: '🎯 目標',
-  howto_objective_desc: '対戦終了時に、相手より多くのマスを支配していれば勝利！',
+  // ── チュートリアルスライド ──────────────────────────
+  tut_prev: '前へ',
+  tut_next: '次へ',
+  tut_done: '完了',
 
-  howto_play_title: '📋 基本の流れ',
-  howto_play_step1: '① 盤面のマスをタップして配置場所を選ぶ',
-  howto_play_step2: '② WAVE から好きなシェイプ（形）を選ぶ',
-  howto_play_step3: '③「確定」を押して影響力を広げる',
+  tut_1_title: '🎯 目標',
+  tut_1_desc: '対戦終了時に、相手より多くのマスを支配していれば勝利！',
 
-  howto_influence_title: '✨ 影響力',
-  howto_influence_desc: 'シェイプを置くと、周囲のマスに影響力が広がり自分の色に染まる。同じマスに重ねて置く（スタック）と、影響力がさらに遠くまで届く！',
+  tut_2_title: '① マスを選ぶ',
+  tut_2_desc: '盤面のマスをタップして、シェイプを置く場所を選ぼう',
 
-  howto_shapes_title: '🔷 シェイプ種類',
-  howto_shapes_desc: 'WEAK・LINE・ELBOW・T字・SQUARE・CROSS の6種類。強いシェイプほど広い範囲に影響力が届く。',
+  tut_3_title: '② シェイプを選ぶ',
+  tut_3_desc: 'WAVEから好きなシェイプを選ぼう。種類によって影響力の広がり方が変わる！',
 
-  howto_tip_title: '💡 ヒント',
-  howto_tip_desc: '相手の強い陣地に自分のシェイプを重ねて、支配権を奪い返そう！',
+  tut_4_title: '③ 影響力を広げる',
+  tut_4_desc: '「確定」を押すと、シェイプを中心に周囲のマスへ影響力が広がる',
+
+  tut_5_title: '🔄 スタック（重ね置き）',
+  tut_5_desc: '同じマスに何度でも重ねて置ける。重ねるほど影響力が遠くまで届く！',
 } as const;
 
 export type I18nKey = keyof typeof ja;
