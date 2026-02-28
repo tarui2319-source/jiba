@@ -78,7 +78,7 @@ export async function closeRoom(roomId: string): Promise<void> {
 /**
  * 自分が作った waiting ルームを削除。
  * キャンセル・アンマウント時に呼ぶ。
- * red_id と status の二重ガードで誤削除を防ぐ。
+ * second_id と status の二重ガードで誤削除を防ぐ。
  */
 export async function deleteOwnWaitingRoom(roomId: string): Promise<void> {
   const sb = getSupabaseClient();
