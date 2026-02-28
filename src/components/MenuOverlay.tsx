@@ -13,7 +13,7 @@
  * - PanResponder でスワイプジェスチャー対応
  */
 
-import React, { useState, useRef, useCallback, memo } from 'react';
+import React, { useState, useRef, useCallback, memo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -322,6 +322,14 @@ export const MenuOverlay = memo<MenuOverlayProps>(({ visible, onClose, onEditUse
   const { t, locale, setLocale } = useI18n();
   const [showTutorial, setShowTutorial] = useState(false);
   const [slide, setSlide] = useState(0);
+
+  // 閉じた時にメニューリストへリセット
+  useEffect(() => {
+    if (!visible) {
+      setShowTutorial(false);
+      setSlide(0);
+    }
+  }, [visible]);
 
   // ── スワイプジェスチャー ────────────────────────────────
   const pan = useRef(
