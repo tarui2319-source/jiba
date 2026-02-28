@@ -102,6 +102,12 @@ export const en: Record<I18nKey, string> = {
   tut_5_title: '⚓ Anchor Rules',
   tut_5_desc: 'You can place on any square you control.',
 
-  tut_6_title: 'Learn by Example',
-  tut_6_desc: 'Tap the arrows to browse 3 examples',
+  tut_6_title: 'Power Spreads',
+  tut_6_desc: "The moment you place an anchor, power spreads outward in the shape's pattern",
+
+  tut_7_title: 'Higher Power Wins',
+  tut_7_desc: 'BLUE power 4 vs RED power 2 → BLUE wins and claims that cell!',
+
+  tut_8_title: 'Anchor Is Untouchable',
+  tut_8_desc: "No matter how high the enemy's power, your anchor cell can NEVER be taken",
 };

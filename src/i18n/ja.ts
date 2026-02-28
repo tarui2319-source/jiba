@@ -100,8 +100,14 @@ export const ja = {
   tut_5_title: '⚓ アンカー設置ルール',
   tut_5_desc: '自分の支配しているマスならどこでも置ける。',
 
-  tut_6_title: 'ケースで理解する',
-  tut_6_desc: '矢印をタップして3つの事例を確認しよう',
+  tut_6_title: 'パワーが広がる',
+  tut_6_desc: 'アンカーを置いた瞬間、シェイプの形にそってパワーが広がる',
+
+  tut_7_title: '強いパワーが勝つ',
+  tut_7_desc: 'BLUEのパワー4・REDが2なら、数字が大きいBLUEがそのマスを支配！',
+
+  tut_8_title: 'アンカーだけは別',
+  tut_8_desc: '敵のパワーがいくら高くても、アンカーマスだけは絶対に奪われない',
 } as const;
 
 export type I18nKey = keyof typeof ja;
