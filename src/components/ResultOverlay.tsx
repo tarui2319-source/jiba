@@ -41,8 +41,8 @@ export const ResultOverlay = React.memo<ResultOverlayProps>(({
   }, [fadeAnim, slideAnim]);
 
   // ── 表示テキスト ────────────────────────────────────
-  const isWinnerBlue  = result.winner === 'blue';
-  const isWinnerRed   = result.winner === 'red';
+  const isWinnerBlue  = result.winner === 'first';
+  const isWinnerRed   = result.winner === 'second';
   const isDraw        = result.winner === 'draw';
   const isSurrender   = !!surrenderedBy;
 
@@ -64,15 +64,15 @@ export const ResultOverlay = React.memo<ResultOverlayProps>(({
                      : '🤝';
 
   const resultMain   = isSurrender
-    ? (surrenderedBy === 'blue' ? t('blue_surrender') : t('red_surrender'))
-    : isWinnerBlue  ? t('blue_wins')
-    : isWinnerRed   ? t('red_wins')
+    ? (surrenderedBy === 'first' ? t('first_surrender') : t('second_surrender'))
+    : isWinnerBlue  ? t('first_wins')
+    : isWinnerRed   ? t('second_wins')
     : t('draw');
 
   // スコア合計でバーの幅比率を計算
-  const total = result.blueCount + result.redCount;
-  const bluePct = total > 0 ? result.blueCount / total : 0.5;
-  const redPct  = total > 0 ? result.redCount  / total : 0.5;
+  const total = result.firstCount + result.secondCount;
+  const bluePct = total > 0 ? result.firstCount / total : 0.5;
+  const redPct  = total > 0 ? result.secondCount  / total : 0.5;
 
   return (
     <Animated.View
@@ -96,11 +96,11 @@ export const ResultOverlay = React.memo<ResultOverlayProps>(({
         {/* ── スコア比較バー ─────────────────────────── */}
         <View style={styles.scoreSection}>
           <View style={styles.scoreRow}>
-            <Text style={[styles.scoreNum, { color: Colors.blueLight }]}>{result.blueCount}</Text>
+            <Text style={[styles.scoreNum, { color: Colors.blueLight }]}>{result.firstCount}</Text>
             <Text style={styles.scoreLabel}>{t('squares')}</Text>
             <Text style={styles.scoreSep}>vs</Text>
             <Text style={styles.scoreLabel}>{t('squares')}</Text>
-            <Text style={[styles.scoreNum, { color: Colors.redLight }]}>{result.redCount}</Text>
+            <Text style={[styles.scoreNum, { color: Colors.redLight }]}>{result.secondCount}</Text>
           </View>
 
           {/* 横バー */}
@@ -111,11 +111,11 @@ export const ResultOverlay = React.memo<ResultOverlayProps>(({
 
           <View style={styles.scoreRow}>
             <Text style={[styles.powerText, { color: Colors.blueLight }]}>
-              {t('power')}{result.bluePower}
+              {t('power')}{result.firstPower}
             </Text>
             <View style={{ flex: 1 }} />
             <Text style={[styles.powerText, { color: Colors.redLight }]}>
-              {t('power')}{result.redPower}
+              {t('power')}{result.secondPower}
             </Text>
           </View>
         </View>

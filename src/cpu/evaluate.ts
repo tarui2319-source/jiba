@@ -20,21 +20,21 @@ export function scoreBoard(
   player: Player,
   includePower = true,
 ): number {
-  let blueCount = 0;
-  let redCount = 0;
-  let totalD = 0; // Σ(blue_inf - red_inf) 全マス合計
+  let firstCount = 0;
+  let secondCount = 0;
+  let totalD = 0; // Σ(first_inf - second_inf) 全マス合計
 
   for (const row of influence) {
     for (const cell of row) {
-      if (cell.controller === 'blue') blueCount++;
-      else if (cell.controller === 'red') redCount++;
+      if (cell.controller === 'first') firstCount++;
+      else if (cell.controller === 'second') secondCount++;
       totalD += cell.d;
     }
   }
 
-  // blue=+1, red=-1 の符号で視点を合わせる
-  const sign = player === 'blue' ? 1 : -1;
-  const controlled = sign * (blueCount - redCount);
+  // first=+1, second=-1 の符号で視点を合わせる
+  const sign = player === 'first' ? 1 : -1;
+  const controlled = sign * (firstCount - secondCount);
 
   if (!includePower) return controlled;
 

@@ -15,20 +15,20 @@ import { CellState, GameResult } from './types';
  * @param influence computeInfluence() の戻り値
  */
 export function getResult(influence: CellState[][]): GameResult {
-  let blueCount = 0;
-  let redCount = 0;
+  let firstCount = 0;
+  let secondCount = 0;
   let neutralCount = 0;
-  let bluePower = 0;
-  let redPower = 0;
+  let firstPower = 0;
+  let secondPower = 0;
 
   for (const row of influence) {
     for (const cell of row) {
-      if (cell.controller === 'blue') {
-        blueCount++;
-        bluePower += cell.displayValue;
-      } else if (cell.controller === 'red') {
-        redCount++;
-        redPower += cell.displayValue;
+      if (cell.controller === 'first') {
+        firstCount++;
+        firstPower += cell.displayValue;
+      } else if (cell.controller === 'second') {
+        secondCount++;
+        secondPower += cell.displayValue;
       } else {
         neutralCount++;
       }
@@ -36,13 +36,13 @@ export function getResult(influence: CellState[][]): GameResult {
   }
 
   let winner: GameResult['winner'];
-  if (blueCount !== redCount) {
-    winner = blueCount > redCount ? 'blue' : 'red';
-  } else if (bluePower !== redPower) {
-    winner = bluePower > redPower ? 'blue' : 'red';
+  if (firstCount !== secondCount) {
+    winner = firstCount > secondCount ? 'first' : 'second';
+  } else if (firstPower !== secondPower) {
+    winner = firstPower > secondPower ? 'first' : 'second';
   } else {
     winner = 'draw';
   }
 
-  return { winner, blueCount, redCount, neutralCount, bluePower, redPower };
+  return { winner, firstCount, secondCount, neutralCount, firstPower, secondPower };
 }

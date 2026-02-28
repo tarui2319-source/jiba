@@ -38,14 +38,14 @@ jest.mock('../../network/roomService', () => ({
 
 /** テスト用 matchResult */
 const blueMatch: MatchResult = {
-  roomId: 'room-1', myPlayer: 'blue', mode: 'quick', nextOpponentSeq: 0,
+  roomId: 'room-1', myPlayer: 'first', mode: 'quick', nextOpponentSeq: 0,
 };
 const redMatch: MatchResult = {
-  roomId: 'room-1', myPlayer: 'red', mode: 'quick', nextOpponentSeq: 1,
+  roomId: 'room-1', myPlayer: 'second', mode: 'quick', nextOpponentSeq: 1,
 };
 
 /** テスト用 MoveRow ビルダー */
-function buildMoveRow(seq: number, player: 'blue' | 'red'): MoveRow {
+function buildMoveRow(seq: number, player: 'first' | 'second'): MoveRow {
   return {
     id: seq, room_id: 'room-1', player, player_id: 'p',
     seq, move_type: 'build', row: 0, col: seq % 6, shape: 'weak',
@@ -106,7 +106,7 @@ describe('useOnlineGame', () => {
         return useOnlineGame({ gameStateReturn: gsr, matchResult: blueMatch });
       });
       expect(result.current.isOnlineGame).toBe(true);
-      expect(result.current.myPlayer).toBe('blue');
+      expect(result.current.myPlayer).toBe('first');
     });
 
     it('matchResult 設定時に subscribeToOpponentMoves を呼ぶ', async () => {
@@ -117,13 +117,13 @@ describe('useOnlineGame', () => {
       await act(async () => { await flushPromises(); });
 
       expect(subscribeToOpponentMoves).toHaveBeenCalledWith(
-        'room-1', 'blue', expect.any(Function), expect.any(Function),
+        'room-1', 'first', expect.any(Function), expect.any(Function),
       );
     });
 
     it('fetchExistingMoves で相手の既存手番を適用する', async () => {
       // RED の既存手番（seq=1）を返すモック
-      const existingRow = buildMoveRow(1, 'red');
+      const existingRow = buildMoveRow(1, 'second');
       (fetchExistingMoves as jest.Mock).mockResolvedValue([existingRow]);
 
       const applyMoveSpy = jest.fn();
@@ -155,7 +155,7 @@ describe('useOnlineGame', () => {
       act(() => { result.current.applyOnlineMove(action); });
 
       expect(applyMoveSpy).toHaveBeenCalledWith(action);
-      expect(insertMove).toHaveBeenCalledWith('room-1', 'blue', 0, action);
+      expect(insertMove).toHaveBeenCalledWith('room-1', 'first', 0, action);
     });
 
     it('初期状態で isReconnecting = false', () => {
@@ -246,11 +246,11 @@ describe('useOnlineGame', () => {
       await act(async () => { await flushPromises(); });
 
       // BLUE の expectedSeq=1。seq=3（RED の 2 手目）が先着 → バッファ
-      act(() => { capturedCb!(buildMoveRow(3, 'red')); });
+      act(() => { capturedCb!(buildMoveRow(3, 'second')); });
       expect(applyMoveSpy).toHaveBeenCalledTimes(0); // バッファに格納
 
       // seq=1（RED の 1 手目）が到着 → 1 を適用 → バッファから 3 をドレイン → 順に適用
-      act(() => { capturedCb!(buildMoveRow(1, 'red')); });
+      act(() => { capturedCb!(buildMoveRow(1, 'second')); });
       expect(applyMoveSpy).toHaveBeenCalledTimes(2); // 1, 3 の順
     });
 
@@ -273,11 +273,11 @@ describe('useOnlineGame', () => {
       await act(async () => { await flushPromises(); });
 
       // expected=0 のときに seq=1 を適用
-      act(() => { capturedCb!(buildMoveRow(1, 'red')); });
+      act(() => { capturedCb!(buildMoveRow(1, 'second')); });
       expect(applyMoveSpy).toHaveBeenCalledTimes(1);
 
       // seq=1 を再度送信 → expected=3 なので無視
-      act(() => { capturedCb!(buildMoveRow(1, 'red')); });
+      act(() => { capturedCb!(buildMoveRow(1, 'second')); });
       expect(applyMoveSpy).toHaveBeenCalledTimes(1); // 増えない
     });
 
@@ -315,10 +315,10 @@ describe('useOnlineGame', () => {
 
       // RED の expected は nextOpponentSeq=1（BLUE の最初の手番）
       // seq=0 はスコープ外（RED には不要）
-      act(() => { capturedCb!(buildMoveRow(0, 'blue')); });
+      act(() => { capturedCb!(buildMoveRow(0, 'first')); });
       expect(applyMoveSpy).toHaveBeenCalledTimes(0); // 0 < expectedSeq=1 → 無視
 
-      act(() => { capturedCb!(buildMoveRow(1, 'blue')); });  // wrong: blueの手番はseq=0
+      act(() => { capturedCb!(buildMoveRow(1, 'first')); });  // wrong: blueの手番はseq=0
       // seq=1 >= expected(1) なので適用
       expect(applyMoveSpy).toHaveBeenCalledTimes(1);
     });
@@ -442,8 +442,8 @@ describe('useOnlineGame', () => {
 
       act(() => { result.current.surrenderOnline(); });
 
-      expect(surrenderSpy).toHaveBeenCalledWith('blue');
-      expect(insertSurrenderMove).toHaveBeenCalledWith('room-1', 'blue', 0);
+      expect(surrenderSpy).toHaveBeenCalledWith('first');
+      expect(insertSurrenderMove).toHaveBeenCalledWith('room-1', 'first', 0);
     });
 
     it('相手の surrender move を受信するとローカル surrender が呼ばれる', async () => {
@@ -465,13 +465,13 @@ describe('useOnlineGame', () => {
 
       // 相手（red）が降参
       const surrenderRow: MoveRow = {
-        id: 99, room_id: 'room-1', player: 'red', player_id: 'opp',
+        id: 99, room_id: 'room-1', player: 'second', player_id: 'opp',
         seq: 1, move_type: 'surrender', row: 0, col: 0, shape: 'weak',
         created_at: '2026-01-01',
       };
       act(() => { capturedCb!(surrenderRow); });
 
-      expect(surrenderSpy).toHaveBeenCalledWith('red');
+      expect(surrenderSpy).toHaveBeenCalledWith('second');
     });
 
     it('matchResult=null のとき surrenderOnline は no-op', () => {

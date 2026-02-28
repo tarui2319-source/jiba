@@ -40,12 +40,16 @@ export const ja = {
   moves_left: '残{n}手',
   wave: 'WAVE',
 
+  // ── プレイヤー表示 ─────────────────────
+  player_first: '先攻',
+  player_second: '後攻',
+
   // ── 結果 ───────────────────────────────
-  blue_wins: 'BLUE の勝ち！',
-  red_wins: 'RED の勝ち！',
+  first_wins: '先攻 の勝ち！',
+  second_wins: '後攻 の勝ち！',
   draw: '引き分け',
-  blue_surrender: 'BLUE が降参',
-  red_surrender: 'RED が降参',
+  first_surrender: '先攻 が降参',
+  second_surrender: '後攻 が降参',
   squares: 'マス',
   power: 'パワー: ',
 
@@ -104,7 +108,7 @@ export const ja = {
   tut_6_desc: 'アンカーを置いた瞬間、シェイプの形にそってパワーが広がる',
 
   tut_7_title: '強いパワーが勝つ',
-  tut_7_desc: 'BLUEのパワー4・REDが2なら、数字が大きいBLUEがそのマスを支配！',
+  tut_7_desc: '先攻のパワー4・後攻が2なら、数字が大きい先攻がそのマスを支配！',
 
   tut_8_title: 'アンカーだけは別',
   tut_8_desc: '敵のパワーがいくら高くても、アンカーマスだけは絶対に奪われない',

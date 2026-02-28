@@ -26,7 +26,7 @@ import { MY_PLAYER_ID } from '../network/supabaseClient';
 
 export interface UsePlayerRatingProps {
   gameResult: GameResult | null;
-  myPlayer: 'blue' | 'red' | null;
+  myPlayer: 'first' | 'second' | null;
   isOnlineGame: boolean;
 }
 
@@ -40,7 +40,7 @@ export interface UsePlayerRatingReturn {
 // ユーティリティ: GameResult → GameOutcome
 // ──────────────────────────────────────────────────────────────
 
-function toOutcome(result: GameResult, myPlayer: 'blue' | 'red'): GameOutcome {
+function toOutcome(result: GameResult, myPlayer: 'first' | 'second'): GameOutcome {
   if (result.winner === 'draw') return 'draw';
   return result.winner === myPlayer ? 'win' : 'loss';
 }

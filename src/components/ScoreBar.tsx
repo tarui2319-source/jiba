@@ -13,23 +13,23 @@ import { Colors, FontSize, Spacing } from '../constants/theme';
 import { useI18n } from '../i18n';
 
 interface ScoreBarProps {
-  blueCount: number;
-  redCount: number;
+  firstCount: number;
+  secondCount: number;
   currentPlayer: Player;
   timerSeconds: number;
   isTimerWarning: boolean;
   movesLeft: Record<Player, number>;
-  myPlayer?: 'blue' | 'red' | null;
+  myPlayer?: 'first' | 'second' | null;
   myRating?: RatingState | null;
 }
 
 export const ScoreBar = React.memo<ScoreBarProps>(({
-  blueCount, redCount, currentPlayer, timerSeconds, isTimerWarning, movesLeft,
+  firstCount, secondCount, currentPlayer, timerSeconds, isTimerWarning, movesLeft,
   myPlayer, myRating,
 }) => {
   const { t } = useI18n();
-  const isBlueActive = currentPlayer === 'blue';
-  const isRedActive  = currentPlayer === 'red';
+  const isBlueActive = currentPlayer === 'first';
+  const isRedActive  = currentPlayer === 'second';
 
   return (
     <View style={styles.container}>
@@ -39,15 +39,15 @@ export const ScoreBar = React.memo<ScoreBarProps>(({
         isBlueActive ? styles.activeBlockBlue : styles.inactiveBlock,
       ]}>
         <Text style={[styles.playerLabel, { color: isBlueActive ? Colors.blue : Colors.textMuted }]}>
-          BLUE
+          {t('player_first')}
         </Text>
         <Text style={[styles.score, { color: isBlueActive ? Colors.blueLight : Colors.neutralText }]}>
-          {blueCount}
+          {firstCount}
         </Text>
         <Text style={[styles.movesLeft, { color: isBlueActive ? Colors.textSecondary : Colors.textMuted }]}>
-          {t('moves_left', { n: movesLeft.blue })}
+          {t('moves_left', { n: movesLeft.first })}
         </Text>
-        {myPlayer === 'blue' && myRating && (
+        {myPlayer === 'first' && myRating && (
           <RankBadge rating={myRating} size="compact" />
         )}
       </View>
@@ -65,7 +65,7 @@ export const ScoreBar = React.memo<ScoreBarProps>(({
           styles.turnIndicator,
           { color: isBlueActive ? Colors.blue : Colors.red },
         ]}>
-          {isBlueActive ? '◀  BLUE' : 'RED  ▶'}
+          {isBlueActive ? `◀  ${t('player_first')}` : `${t('player_second')}  ▶`}
         </Text>
       </View>
 
@@ -75,15 +75,15 @@ export const ScoreBar = React.memo<ScoreBarProps>(({
         isRedActive ? styles.activeBlockRed : styles.inactiveBlock,
       ]}>
         <Text style={[styles.playerLabel, { color: isRedActive ? Colors.red : Colors.textMuted }]}>
-          RED
+          {t('player_second')}
         </Text>
         <Text style={[styles.score, { color: isRedActive ? Colors.redLight : Colors.neutralText }]}>
-          {redCount}
+          {secondCount}
         </Text>
         <Text style={[styles.movesLeft, { color: isRedActive ? Colors.textSecondary : Colors.textMuted }]}>
-          {t('moves_left', { n: movesLeft.red })}
+          {t('moves_left', { n: movesLeft.second })}
         </Text>
-        {myPlayer === 'red' && myRating && (
+        {myPlayer === 'second' && myRating && (
           <RankBadge rating={myRating} size="compact" />
         )}
       </View>

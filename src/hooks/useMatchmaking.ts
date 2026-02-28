@@ -103,11 +103,11 @@ export function useMatchmaking(): UseMatchmakingReturn {
       const result = await findOrCreateRoom(mode);
       if (isCancelledRef.current) return;
 
-      if (result.myPlayer === 'blue') {
-        // BLUE: 即座にマッチ完了
+      if (result.myPlayer === 'first') {
+        // FIRST: 即座にマッチ完了
         setMatchState({ status: 'matched', result });
       } else {
-        // RED: 相手が参加するまでポーリング
+        // SECOND: 相手が参加するまでポーリング
         setMatchState({ status: 'waiting_for_opponent', roomId: result.roomId });
         startPolling(result);
       }

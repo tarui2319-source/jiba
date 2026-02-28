@@ -11,8 +11,8 @@ export interface RoomRow {
   id: string;
   mode: GameMode;
   status: 'waiting' | 'playing' | 'finished';
-  blue_id: string | null;  // JOIN 側プレイヤー（BLUE）
-  red_id: string;          // CREATE 側プレイヤー（RED）
+  first_id: string | null;  // JOIN 側プレイヤー（BLUE）
+  second_id: string;          // CREATE 側プレイヤー（RED）
   created_at: string;
   updated_at: string;
 }
@@ -21,7 +21,7 @@ export interface RoomRow {
 export interface MoveRow {
   id: number;
   room_id: string;
-  player: 'blue' | 'red';
+  player: 'first' | 'second';
   player_id: string;
   seq: number;              // 0-indexed ゲーム内通し番号（UNIQUE with room_id）
   move_type: 'build' | 'stack' | 'surrender';
@@ -34,7 +34,7 @@ export interface MoveRow {
 /** マッチング確定後の情報 */
 export interface MatchResult {
   roomId: string;
-  myPlayer: 'blue' | 'red';
+  myPlayer: 'first' | 'second';
   mode: GameMode;           // マッチしたゲームモード
   nextOpponentSeq: number;  // 初期同期後の次期待 seq（通常 0）
 }

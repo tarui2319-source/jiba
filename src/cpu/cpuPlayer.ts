@@ -12,7 +12,7 @@ import { computeInfluence } from '../engine/influence';
 import { scoreBoard, scoreMove } from './evaluate';
 import { CpuDifficulty } from '../constants/cpuConfig';
 
-const opponent = (p: Player): Player => (p === 'blue' ? 'red' : 'blue');
+const opponent = (p: Player): Player => (p === 'first' ? 'second' : 'first');
 
 // ──────────────────────────────────────────────────────────────────────────────
 // 内部ヘルパー

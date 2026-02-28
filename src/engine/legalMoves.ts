@@ -21,7 +21,7 @@ import { computeInfluence } from './influence';
  */
 export function getLegalMoves(board: Board, player: Player, size: number): Action[] {
   const moves: Action[] = [];
-  const opponent: Player = player === 'blue' ? 'red' : 'blue';
+  const opponent: Player = player === 'first' ? 'second' : 'first';
   const cellStates = computeInfluence(board, size);
 
   for (let r = 0; r < size; r++) {
@@ -67,7 +67,7 @@ export function isLegalMove(
   if (action.type === 'build') {
     if (anchors.length !== 0) return false;
     // 敵に支配されているマスには Build 不可
-    const opponent: Player = player === 'blue' ? 'red' : 'blue';
+    const opponent: Player = player === 'first' ? 'second' : 'first';
     const cellStates = computeInfluence(board, size);
     return cellStates[row][col].controller !== opponent;
   }

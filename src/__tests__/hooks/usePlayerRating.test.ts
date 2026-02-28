@@ -33,18 +33,18 @@ const mockUpsertRating = upsertRating as jest.Mock;
 // ──────────────────────────────────────────────────────────────
 
 const blueWin: GameResult = {
-  winner: 'blue', blueCount: 30, redCount: 20, neutralCount: 5,
-  bluePower: 100, redPower: 60,
+  winner: 'first', firstCount: 30, secondCount: 20, neutralCount: 5,
+  firstPower: 100, secondPower: 60,
 };
 
 const redWin: GameResult = {
-  winner: 'red', blueCount: 15, redCount: 35, neutralCount: 5,
-  bluePower: 50, redPower: 120,
+  winner: 'second', firstCount: 15, secondCount: 35, neutralCount: 5,
+  firstPower: 50, secondPower: 120,
 };
 
 const draw: GameResult = {
-  winner: 'draw', blueCount: 25, redCount: 25, neutralCount: 5,
-  bluePower: 80, redPower: 80,
+  winner: 'draw', firstCount: 25, secondCount: 25, neutralCount: 5,
+  firstPower: 80, secondPower: 80,
 };
 
 const existingRow: RatingRow = {
@@ -67,7 +67,7 @@ describe('usePlayerRating', () => {
       mockFetchRating.mockResolvedValue(existingRow);
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePlayerRating({ gameResult: null, myPlayer: 'blue', isOnlineGame: true }),
+        usePlayerRating({ gameResult: null, myPlayer: 'first', isOnlineGame: true }),
       );
 
       expect(result.current.isLoading).toBe(true);
@@ -82,16 +82,16 @@ describe('usePlayerRating', () => {
       mockFetchRating.mockResolvedValue(existingRow);
 
       const { result, waitForNextUpdate, rerender } = renderHook(
-        ({ gameResult, myPlayer }: { gameResult: GameResult | null; myPlayer: 'blue' | 'red' }) =>
+        ({ gameResult, myPlayer }: { gameResult: GameResult | null; myPlayer: 'first' | 'second' }) =>
           usePlayerRating({ gameResult, myPlayer, isOnlineGame: true }),
-        { initialProps: { gameResult: null as GameResult | null, myPlayer: 'blue' as const } },
+        { initialProps: { gameResult: null as GameResult | null, myPlayer: 'first' as const } },
       );
 
       await waitForNextUpdate(); // fetchRating 完了
 
       // 勝利結果を渡す
       act(() => {
-        rerender({ gameResult: blueWin, myPlayer: 'blue' });
+        rerender({ gameResult: blueWin, myPlayer: 'first' });
       });
 
       // upsertRating が呼ばれる（非同期）
@@ -113,7 +113,7 @@ describe('usePlayerRating', () => {
 
       const { rerender, waitForNextUpdate } = renderHook(
         ({ gameResult }: { gameResult: GameResult | null }) =>
-          usePlayerRating({ gameResult, myPlayer: 'blue', isOnlineGame: true }),
+          usePlayerRating({ gameResult, myPlayer: 'first', isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null } },
       );
 
@@ -132,7 +132,7 @@ describe('usePlayerRating', () => {
   describe('異常系', () => {
     it('isOnlineGame=false なら fetchRating は呼ばれない', async () => {
       const { result } = renderHook(() =>
-        usePlayerRating({ gameResult: null, myPlayer: 'blue', isOnlineGame: false }),
+        usePlayerRating({ gameResult: null, myPlayer: 'first', isOnlineGame: false }),
       );
 
       await new Promise(r => setTimeout(r, 10));
@@ -148,7 +148,7 @@ describe('usePlayerRating', () => {
 
       const { rerender, waitForNextUpdate } = renderHook(
         ({ gameResult }: { gameResult: GameResult | null }) =>
-          usePlayerRating({ gameResult, myPlayer: 'blue', isOnlineGame: true }),
+          usePlayerRating({ gameResult, myPlayer: 'first', isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null } },
       );
 
@@ -165,7 +165,7 @@ describe('usePlayerRating', () => {
       mockFetchRating.mockRejectedValue(new Error('connection error'));
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePlayerRating({ gameResult: null, myPlayer: 'blue', isOnlineGame: true }),
+        usePlayerRating({ gameResult: null, myPlayer: 'first', isOnlineGame: true }),
       );
 
       await waitForNextUpdate();
@@ -180,7 +180,7 @@ describe('usePlayerRating', () => {
       mockFetchRating.mockResolvedValue(null);
 
       const { result, waitForNextUpdate } = renderHook(() =>
-        usePlayerRating({ gameResult: null, myPlayer: 'red', isOnlineGame: true }),
+        usePlayerRating({ gameResult: null, myPlayer: 'second', isOnlineGame: true }),
       );
 
       await waitForNextUpdate();
@@ -193,7 +193,7 @@ describe('usePlayerRating', () => {
 
       const { result, rerender, waitForNextUpdate } = renderHook(
         ({ gameResult }: { gameResult: GameResult | null }) =>
-          usePlayerRating({ gameResult, myPlayer: 'blue', isOnlineGame: true }),
+          usePlayerRating({ gameResult, myPlayer: 'first', isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null } },
       );
 
@@ -212,7 +212,7 @@ describe('usePlayerRating', () => {
 
       const { rerender, waitForNextUpdate } = renderHook(
         ({ gameResult }: { gameResult: GameResult | null }) =>
-          usePlayerRating({ gameResult, myPlayer: 'blue', isOnlineGame: true }),
+          usePlayerRating({ gameResult, myPlayer: 'first', isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null } },
       );
 
@@ -232,7 +232,7 @@ describe('usePlayerRating', () => {
 
       const { rerender, waitForNextUpdate } = renderHook(
         ({ gameResult }: { gameResult: GameResult | null }) =>
-          usePlayerRating({ gameResult, myPlayer: 'red', isOnlineGame: true }),
+          usePlayerRating({ gameResult, myPlayer: 'second', isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null } },
       );
 
