@@ -74,25 +74,31 @@ export const en: Record<I18nKey, string> = {
   rank_up: '⬆ Promoted!',
   rank_down: '⬇ Demoted',
 
-  // ── How to Play ────────────────────────
-  howto_btn: '?',
-  howto_title: 'How to Play',
-  howto_close: 'Close',
+  // ── Menu ───────────────────────────────
+  menu_title: 'Menu',
+  menu_close: 'Close',
+  menu_back: 'Back',
+  menu_rules: 'How to Play',
+  menu_username_item: 'Change Name',
+  menu_language_item: 'Language',
 
-  howto_objective_title: '🎯 Objective',
-  howto_objective_desc: 'Control more squares than your opponent when the game ends — and you win!',
+  // ── Tutorial Slides ────────────────────
+  tut_prev: 'Prev',
+  tut_next: 'Next',
+  tut_done: 'Done',
 
-  howto_play_title: '📋 Basic Flow',
-  howto_play_step1: '① Tap a square on the board to select it',
-  howto_play_step2: '② Pick a shape from the WAVE',
-  howto_play_step3: '③ Press "Confirm" to spread your influence',
+  tut_1_title: '🎯 Objective',
+  tut_1_desc: 'Control more squares than your opponent when the game ends — and you win!',
 
-  howto_influence_title: '✨ Influence',
-  howto_influence_desc: 'Placing a shape spreads influence to surrounding squares, coloring them yours. Stack shapes on the same square to reach even farther!',
+  tut_2_title: '① Select a Square',
+  tut_2_desc: 'Tap any square on the board to choose where to place your shape',
 
-  howto_shapes_title: '🔷 Shape Types',
-  howto_shapes_desc: '6 shapes: WEAK, LINE, ELBOW, T, SQUARE, CROSS. Stronger shapes reach a wider area.',
+  tut_3_title: '② Pick a Shape',
+  tut_3_desc: 'Choose any shape from the WAVE. Different shapes spread influence differently!',
 
-  howto_tip_title: '💡 Tip',
-  howto_tip_desc: "Stack your shapes on the opponent's strong squares to take back control!",
+  tut_4_title: '③ Spread Influence',
+  tut_4_desc: 'Press "Confirm" to place the shape and spread influence to surrounding squares',
+
+  tut_5_title: '🔄 Stack',
+  tut_5_desc: 'Place multiple shapes on the same square. The more stacks, the farther the influence spreads!',
 };
