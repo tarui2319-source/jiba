@@ -11,8 +11,8 @@ export interface RoomRow {
   id: string;
   mode: GameMode;
   status: 'waiting' | 'playing' | 'finished';
-  first_id: string | null;  // JOIN 側プレイヤー（BLUE）
-  second_id: string;          // CREATE 側プレイヤー（RED）
+  first_id: string | null;  // JOIN 側プレイヤー（先攻）
+  second_id: string;          // CREATE 側プレイヤー（後攻）
   created_at: string;
   updated_at: string;
 }
