@@ -183,81 +183,89 @@ const SelectSquareIll = memo(() => (
 SelectSquareIll.displayName = 'SelectSquareIll';
 
 // ──────────────────────────────────────────────────────────────
-// イラスト 3 — シェイプを選ぶ（セルサイズ 14px）
+// イラスト 3 — シェイプを選ぶ（実際の7種類）
 // ──────────────────────────────────────────────────────────────
 
-const SHAPES: { name: string; cells: (0 | 1)[][] }[] = [
-  { name: 'WEAK',  cells: [[0,0,0],[0,1,0],[0,0,0]] },
-  { name: 'LINE',  cells: [[0,1,0],[0,1,0],[0,1,0]] },
-  { name: 'ELBOW', cells: [[0,1,0],[0,1,0],[0,1,1]] },
-  { name: 'T',     cells: [[0,1,0],[1,1,1],[0,0,0]] },
-  { name: 'SQ',    cells: [[1,1,0],[1,1,0],[0,0,0]] },
-  { name: 'CROSS', cells: [[0,1,0],[1,1,1],[0,1,0]] },
-];
-const ACTIVE_IDX = 3; // T字をハイライト
+const makeOffsetSet = (pairs: [number, number][]): Set<string> =>
+  new Set(pairs.map(([dr, dc]) => `${dr},${dc}`));
 
-const ShapePixel = memo<{ cells: (0 | 1)[][]; active: boolean }>(({ cells, active }) => {
-  const C = 14; // セルサイズ（旧: 9px）
-  return (
-    <View>
-      {cells.map((row, ri) => (
-        <View key={ri} style={{ flexDirection: 'row' }}>
-          {row.map((px, ci) => (
-            <View
-              key={ci}
-              style={{
-                width: C, height: C,
-                backgroundColor: px === 1
-                  ? (active ? Colors.blue : Colors.neutral)
-                  : 'transparent',
-                borderRadius: 2,
-              }}
-            />
-          ))}
-        </View>
-      ))}
+const ACTUAL_SHAPES_DATA = [
+  { name: '弱',   offsets: makeOffsetSet([[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]), power: 1 },
+  { name: '十字', offsets: makeOffsetSet([[-1,0],[0,-1],[0,1],[1,0]]),                              power: 2 },
+  { name: '斜め', offsets: makeOffsetSet([[-1,-1],[-1,1],[1,-1],[1,1]]),                            power: 2 },
+  { name: '縦',   offsets: makeOffsetSet([[-1,0],[1,0]]),                                           power: 4 },
+  { name: '横',   offsets: makeOffsetSet([[0,-1],[0,1]]),                                           power: 4 },
+  { name: '↖↘', offsets: makeOffsetSet([[-1,-1],[1,1]]),                                           power: 4 },
+  { name: '↗↙', offsets: makeOffsetSet([[-1,1],[1,-1]]),                                           power: 4 },
+];
+
+const SHAPE_C = 10;
+const SHAPE_GAP = 1.5;
+const ACTIVE_SHAPE_IDX = 1; // 十字をハイライト
+
+const ShapeCard = memo<{ item: typeof ACTUAL_SHAPES_DATA[0]; active: boolean }>(
+  ({ item, active }) => (
+    <View style={[illS.shapeCard, active && illS.shapeCardActive]}>
+      <View style={{ gap: SHAPE_GAP }}>
+        {[0, 1, 2].map(r => (
+          <View key={r} style={{ flexDirection: 'row', gap: SHAPE_GAP }}>
+            {[0, 1, 2].map(c => {
+              const isCenter   = r === 1 && c === 1;
+              const isAffected = item.offsets.has(`${r - 1},${c - 1}`);
+              return (
+                <View
+                  key={c}
+                  style={{
+                    width: SHAPE_C, height: SHAPE_C,
+                    backgroundColor: isCenter
+                      ? Colors.neutralText
+                      : isAffected ? '#2a4a7a' : Colors.border,
+                    borderRadius: 1.5,
+                  }}
+                />
+              );
+            })}
+          </View>
+        ))}
+      </View>
+      <Text style={[illS.shapeCardPow, active && illS.shapeCardPowActive]}>{item.power}</Text>
+      <Text style={[illS.shapeCardName, active && illS.shapeCardNameActive]}>{item.name}</Text>
     </View>
-  );
-});
-ShapePixel.displayName = 'ShapePixel';
+  ),
+);
+ShapeCard.displayName = 'ShapeCard';
 
 const SelectShapeIll = memo(() => (
   <View style={illS.wrap}>
     <View style={illS.waveBadge}>
       <Text style={illS.waveText}>WAVE</Text>
     </View>
-    <View style={illS.shapesRow}>
-      {SHAPES.map((s, i) => {
-        const active = i === ACTIVE_IDX;
-        return (
-          <View key={s.name} style={[illS.shapeBox, active && illS.shapeBoxActive]}>
-            <ShapePixel cells={s.cells} active={active} />
-            <Text style={[illS.shapeName, active && illS.shapeNameActive]}>{s.name}</Text>
-          </View>
-        );
-      })}
+    <View style={illS.shapesRow7}>
+      {ACTUAL_SHAPES_DATA.map((item, i) => (
+        <ShapeCard key={item.name} item={item} active={i === ACTIVE_SHAPE_IDX} />
+      ))}
     </View>
   </View>
 ));
 SelectShapeIll.displayName = 'SelectShapeIll';
 
 // ──────────────────────────────────────────────────────────────
-// イラスト 4 — パワーを広げる（数値ラベル付き）
+// イラスト 4 — パワーを広げる（mid_cross: アンカー⚓・パワー2）
 // ──────────────────────────────────────────────────────────────
 
 const INF_BOARD: CellColor[][] = [
-  ['empty',     'empty',     'empty',     'empty',     'empty'],
-  ['empty',     'influence', 'influence', 'influence', 'empty'],
-  ['empty',     'influence', 'blue',      'influence', 'empty'],
-  ['empty',     'influence', 'influence', 'influence', 'empty'],
-  ['empty',     'empty',     'empty',     'empty',     'empty'],
+  ['empty', 'empty',     'empty',     'empty',     'empty'],
+  ['empty', 'empty',     'influence', 'empty',     'empty'],
+  ['empty', 'influence', 'blue',      'influence', 'empty'],
+  ['empty', 'empty',     'influence', 'empty',     'empty'],
+  ['empty', 'empty',     'empty',     'empty',     'empty'],
 ];
 
 const INF_LABELS: (string | null)[][] = [
   [null, null, null, null, null],
-  [null, '1',  '1',  '1',  null],
-  [null, '1',  '3',  '1',  null],
-  [null, '1',  '1',  '1',  null],
+  [null, null, '2',  null, null],
+  [null, '2',  '⚓', '2',  null],
+  [null, null, '2',  null, null],
   [null, null, null, null, null],
 ];
 
@@ -267,11 +275,11 @@ const InfluenceIll = memo(() => (
     <View style={illS.legend}>
       <View style={illS.legendItem}>
         <View style={[illS.legendDot, { backgroundColor: Colors.blue }]} />
-        <Text style={illS.legendLabel}>配置 (パワー3)</Text>
+        <Text style={illS.legendLabel}>⚓ アンカー（パワーなし）</Text>
       </View>
       <View style={illS.legendItem}>
         <View style={[illS.legendDot, { backgroundColor: CELL_BG.influence }]} />
-        <Text style={illS.legendLabel}>パワー1</Text>
+        <Text style={illS.legendLabel}>パワー 2</Text>
       </View>
     </View>
   </View>
@@ -279,7 +287,7 @@ const InfluenceIll = memo(() => (
 InfluenceIll.displayName = 'InfluenceIll';
 
 // ──────────────────────────────────────────────────────────────
-// イラスト 5 — 設置ルール（どこでも + スタック）
+// イラスト 5 — アンカー設置ルール
 // ──────────────────────────────────────────────────────────────
 
 // blue_sel = 自分が支配しているマス（黄色枠で「置ける」を表現）
@@ -291,49 +299,17 @@ const PLACE_BOARD: CellColor[][] = [
   ['empty',    'empty',    'red',      'empty',    'empty'],
 ];
 
-const STACK_BEFORE: CellColor[][] = [
-  ['empty', 'empty', 'empty'],
-  ['empty', 'blue',  'empty'],
-  ['empty', 'empty', 'empty'],
-];
-
-const STACK_AFTER: CellColor[][] = [
-  ['influence', 'influence_strong', 'influence'],
-  ['influence_strong', 'blue', 'influence_strong'],
-  ['influence', 'influence_strong', 'influence'],
-];
-
 const PlacementIll = memo(() => (
   <View style={illS.wrap}>
-    <View style={illS.placeLayout}>
-      {/* 左: 設置可能マスを示すボード */}
-      <View style={illS.placeLeft}>
-        <MiniBoard board={PLACE_BOARD} cellSize={22} />
-        <View style={illS.placeLegend}>
-          <View style={illS.legendItem}>
-            <View style={[illS.legendDot, { backgroundColor: Colors.blue, borderWidth: 1.5, borderColor: Colors.selectedBorder }]} />
-            <Text style={illS.legendLabel}>置ける</Text>
-          </View>
-          <View style={illS.legendItem}>
-            <View style={[illS.legendDot, { backgroundColor: Colors.red }]} />
-            <Text style={illS.legendLabel}>相手</Text>
-          </View>
-        </View>
+    <MiniBoard board={PLACE_BOARD} cellSize={24} />
+    <View style={illS.legend}>
+      <View style={illS.legendItem}>
+        <View style={[illS.legendDot, { backgroundColor: Colors.blue, borderWidth: 1.5, borderColor: Colors.selectedBorder }]} />
+        <Text style={illS.legendLabel}>置ける（⚓ 自分のアンカーあり）</Text>
       </View>
-      {/* 右: スタック比較 */}
-      <View style={illS.placeRight}>
-        <Text style={illS.stackCompactTitle}>スタック</Text>
-        <View style={illS.stackCompactRow}>
-          <View style={illS.stackCompactItem}>
-            <Text style={illS.stackLabel}>× 1</Text>
-            <MiniBoard board={STACK_BEFORE} cellSize={20} />
-          </View>
-          <Text style={illS.stackArrow}>→</Text>
-          <View style={illS.stackCompactItem}>
-            <Text style={[illS.stackLabel, illS.stackLabelHi]}>× 2</Text>
-            <MiniBoard board={STACK_AFTER} cellSize={20} />
-          </View>
-        </View>
+      <View style={illS.legendItem}>
+        <View style={[illS.legendDot, { backgroundColor: Colors.red }]} />
+        <Text style={illS.legendLabel}>相手</Text>
       </View>
     </View>
   </View>
@@ -341,69 +317,54 @@ const PlacementIll = memo(() => (
 PlacementIll.displayName = 'PlacementIll';
 
 // ──────────────────────────────────────────────────────────────
-// イラスト 6 — ターン交代とパワー計算（3パターン）
+// イラスト 6 — マスの所属が決まるルール（パワー比較テーブル）
 // ──────────────────────────────────────────────────────────────
+
+const COMP_DATA: Array<{ b: number; r: number; w: 'blue' | 'red' | 'neutral' }> = [
+  { b: 3, r: 1, w: 'blue' },
+  { b: 1, r: 3, w: 'red' },
+  { b: 2, r: 2, w: 'neutral' },
+];
 
 const TurnIll = memo(() => (
   <View style={illS.wrap}>
-    {/* ターン交代シーケンス */}
-    <View style={illS.turnSeq}>
-      <View style={illS.turnStep}>
-        <Text style={illS.turnStepLabel}>あなた</Text>
-        <View style={[illS.turnBadge, illS.turnBadgeBlue]}>
-          <Text style={illS.turnBadgeText}>BLUE</Text>
-        </View>
+    <View style={illS.compTable}>
+      {/* ヘッダー行 */}
+      <View style={illS.compRow}>
+        <Text style={[illS.compCellNum, illS.compHead, { color: Colors.blue }]}>BLUE</Text>
+        <Text style={[illS.compVsCell, illS.compHead]}>{' '}</Text>
+        <Text style={[illS.compCellNum, illS.compHead, { color: Colors.red }]}>RED</Text>
+        <Text style={[illS.compCellRes, illS.compHead]}>結果</Text>
       </View>
-      <Text style={illS.turnArrow}>→</Text>
-      <View style={illS.turnStep}>
-        <Text style={illS.turnStepLabel}>相手</Text>
-        <View style={[illS.turnBadge, illS.turnBadgeRed]}>
-          <Text style={illS.turnBadgeText}>RED</Text>
+      {/* 区切り線 */}
+      <View style={{ height: 1, backgroundColor: Colors.border }} />
+      {/* データ行 */}
+      {COMP_DATA.map((row, i) => (
+        <View key={i} style={illS.compRow}>
+          <Text style={[illS.compCellNum, illS.compNumText, { color: Colors.blue }]}>
+            {row.b}
+          </Text>
+          <Text style={[illS.compVsCell, illS.compVsText]}>vs</Text>
+          <Text style={[illS.compCellNum, illS.compNumText, { color: Colors.red }]}>
+            {row.r}
+          </Text>
+          <View style={[
+            illS.compCellRes,
+            illS.compBadge,
+            row.w === 'blue'    ? { backgroundColor: Colors.blue } :
+            row.w === 'red'     ? { backgroundColor: Colors.red  } :
+            { backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border },
+          ]}>
+            <Text style={{
+              color: row.w === 'neutral' ? Colors.textMuted : Colors.white,
+              fontSize: FontSize.sm,
+              fontWeight: '800',
+            }}>
+              {row.w === 'blue' ? 'BLUE' : row.w === 'red' ? 'RED' : '中立'}
+            </Text>
+          </View>
         </View>
-      </View>
-      <Text style={illS.turnArrow}>→</Text>
-      <View style={illS.turnStep}>
-        <Text style={illS.turnStepLabel}>判定</Text>
-        <View style={illS.turnBadge}>
-          <Text style={illS.turnCalcText}>⚡</Text>
-        </View>
-      </View>
-    </View>
-    {/* 3パターン */}
-    <View style={illS.patternsRow}>
-      {/* BLUEが勝つ */}
-      <View style={illS.pattern}>
-        <View style={illS.powerRow}>
-          <Text style={[illS.powerNum, illS.powerBlue]}>3</Text>
-          <Text style={illS.powerVs}>vs</Text>
-          <Text style={[illS.powerNum, illS.powerRed]}>1</Text>
-        </View>
-        <View style={[illS.patternResult, { backgroundColor: Colors.blue }]}>
-          <Text style={illS.patternResultText}>BLUE</Text>
-        </View>
-      </View>
-      {/* REDが勝つ */}
-      <View style={illS.pattern}>
-        <View style={illS.powerRow}>
-          <Text style={[illS.powerNum, illS.powerBlue]}>1</Text>
-          <Text style={illS.powerVs}>vs</Text>
-          <Text style={[illS.powerNum, illS.powerRed]}>3</Text>
-        </View>
-        <View style={[illS.patternResult, { backgroundColor: Colors.red }]}>
-          <Text style={illS.patternResultText}>RED</Text>
-        </View>
-      </View>
-      {/* 引き分け（中立） */}
-      <View style={illS.pattern}>
-        <View style={illS.powerRow}>
-          <Text style={[illS.powerNum, illS.powerBlue]}>2</Text>
-          <Text style={illS.powerVs}>vs</Text>
-          <Text style={[illS.powerNum, illS.powerRed]}>2</Text>
-        </View>
-        <View style={[illS.patternResult, illS.patternResultNeutral]}>
-          <Text style={illS.patternResultNeutralText}>中立</Text>
-        </View>
-      </View>
+      ))}
     </View>
   </View>
 ));
@@ -414,80 +375,55 @@ TurnIll.displayName = 'TurnIll';
 // ──────────────────────────────────────────────────────────────
 
 const illS = StyleSheet.create({
-  wrap:          { alignItems: 'center', gap: Spacing.sm },
-  scoreRow:      { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  blueScore:     { color: Colors.blue, fontSize: FontSize.sm, fontWeight: '700' },
-  vs:            { color: Colors.textMuted, fontSize: FontSize.xs },
-  redScore:      { color: Colors.red, fontSize: FontSize.sm, fontWeight: '700' },
-  winBadge:      {
+  wrap:      { alignItems: 'center', gap: Spacing.sm },
+  scoreRow:  { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  blueScore: { color: Colors.blue, fontSize: FontSize.sm, fontWeight: '700' },
+  vs:        { color: Colors.textMuted, fontSize: FontSize.xs },
+  redScore:  { color: Colors.red, fontSize: FontSize.sm, fontWeight: '700' },
+  winBadge:  {
     backgroundColor: Colors.blueTint,
     borderRadius: Radius.sm,
     paddingVertical: 3, paddingHorizontal: Spacing.md,
     borderWidth: 1, borderColor: Colors.blue,
   },
-  winText:       { color: Colors.blue, fontSize: FontSize.sm, fontWeight: '800' },
-  tapHint:       { color: Colors.selectedBorder, fontSize: FontSize.xs, fontWeight: '700' },
-  waveBadge:     {
+  winText:   { color: Colors.blue, fontSize: FontSize.sm, fontWeight: '800' },
+  tapHint:   { color: Colors.selectedBorder, fontSize: FontSize.xs, fontWeight: '700' },
+  waveBadge: {
     backgroundColor: Colors.surfaceHigh, borderRadius: Radius.sm,
     paddingVertical: Spacing.xs, paddingHorizontal: Spacing.lg,
     borderWidth: 1, borderColor: Colors.border,
   },
-  waveText:      { color: Colors.blue, fontSize: FontSize.xs, fontWeight: '800', letterSpacing: 2 },
-  shapesRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, justifyContent: 'center' },
-  shapeBox:      {
-    width: 64, alignItems: 'center', gap: 4,
-    paddingVertical: Spacing.xs, paddingHorizontal: Spacing.xs,
+  waveText:  { color: Colors.blue, fontSize: FontSize.xs, fontWeight: '800', letterSpacing: 2 },
+  legend:    { flexDirection: 'row', gap: Spacing.lg },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
+  legendDot:  { width: 12, height: 12, borderRadius: 3 },
+  legendLabel: { color: Colors.textSecondary, fontSize: FontSize.xs },
+
+  // ── Slide 3: シェイプ選択 ──────────────────────────────────
+  shapesRow7:          { flexDirection: 'row', gap: 3, justifyContent: 'center' },
+  shapeCard:           {
+    alignItems: 'center', gap: 3,
+    paddingVertical: 4, paddingHorizontal: 2,
     borderRadius: Radius.sm, borderWidth: 1,
     borderColor: Colors.border, backgroundColor: Colors.bg,
+    width: 38,
   },
-  shapeBoxActive: { backgroundColor: Colors.blueTint, borderColor: Colors.blue },
-  shapeName:     { color: Colors.textMuted, fontSize: 9, fontWeight: '700' },
-  shapeNameActive: { color: Colors.blue },
-  legend:        { flexDirection: 'row', gap: Spacing.lg },
-  legendItem:    { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
-  legendDot:     { width: 12, height: 12, borderRadius: 3 },
-  legendLabel:   { color: Colors.textSecondary, fontSize: FontSize.xs },
+  shapeCardActive:     { backgroundColor: Colors.blueDim, borderColor: Colors.blue },
+  shapeCardPow:        { color: Colors.textMuted, fontSize: FontSize.xs, fontWeight: '700' },
+  shapeCardPowActive:  { color: Colors.blueLight },
+  shapeCardName:       { color: Colors.textMuted, fontSize: 8 },
+  shapeCardNameActive: { color: Colors.blue },
 
-  // ── Slide 5: 設置ルール ──────────────────────────────────
-  placeLayout:       { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
-  placeLeft:         { alignItems: 'center', gap: Spacing.xs },
-  placeLegend:       { flexDirection: 'row', gap: Spacing.md },
-  placeRight:        { alignItems: 'center', gap: Spacing.xs },
-  stackCompactTitle: { color: Colors.blue, fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
-  stackCompactRow:   { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
-  stackCompactItem:  { alignItems: 'center', gap: 3 },
-  stackLabel:    { color: Colors.textMuted, fontSize: FontSize.xs, fontWeight: '600' },
-  stackLabelHi:  { color: Colors.blue, fontWeight: '700' },
-  stackArrow:    { color: Colors.textSecondary, fontSize: 16, fontWeight: '700' },
-
-  // ── Slide 6: ターン交代 ──────────────────────────────────
-  turnSeq:           { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  turnStep:          { alignItems: 'center', gap: 3 },
-  turnStepLabel:     { fontSize: 9, color: Colors.textMuted, fontWeight: '600' },
-  turnBadge:         {
-    paddingVertical: 4, paddingHorizontal: Spacing.sm,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.surfaceHigh,
-    borderWidth: 1, borderColor: Colors.border,
-  },
-  turnBadgeBlue:     { backgroundColor: Colors.blue, borderColor: Colors.blue },
-  turnBadgeRed:      { backgroundColor: Colors.red, borderColor: Colors.red },
-  turnBadgeText:     { color: Colors.white, fontSize: 11, fontWeight: '800' },
-  turnCalcText:      { fontSize: 14 },
-  turnArrow:         { color: Colors.textMuted, fontSize: 16, fontWeight: '700' },
-  patternsRow:       { flexDirection: 'row', gap: Spacing.md, justifyContent: 'center' },
-  pattern:           { alignItems: 'center', gap: Spacing.xs },
-  powerRow:          { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  powerNum:          { fontSize: 22, fontWeight: '900', lineHeight: 26 },
-  powerBlue:         { color: Colors.blue },
-  powerRed:          { color: Colors.red },
-  powerVs:           { fontSize: FontSize.xs, color: Colors.textMuted },
-  patternResult:     { borderRadius: Radius.sm, paddingVertical: 3, paddingHorizontal: Spacing.md, minWidth: 50, alignItems: 'center' },
-  patternResultText: { color: Colors.white, fontSize: 11, fontWeight: '800' },
-  patternResultNeutral: {
-    backgroundColor: Colors.bg, borderWidth: 1, borderColor: Colors.border,
-  },
-  patternResultNeutralText: { color: Colors.textMuted, fontSize: 11, fontWeight: '800' },
+  // ── Slide 6: パワー比較テーブル ──────────────────────────────
+  compTable:   { gap: 6 },
+  compRow:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  compCellNum: { width: 52, textAlign: 'center' },
+  compVsCell:  { width: 24, textAlign: 'center' },
+  compCellRes: { width: 56 },
+  compHead:    { fontSize: FontSize.xs, fontWeight: '800', color: Colors.textMuted, textAlign: 'center' },
+  compNumText: { fontSize: 26, fontWeight: '900', lineHeight: 32, textAlign: 'center' },
+  compVsText:  { color: Colors.textMuted, fontSize: FontSize.xs, textAlign: 'center' },
+  compBadge:   { borderRadius: Radius.sm, paddingVertical: 4, alignItems: 'center', justifyContent: 'center' },
 });
 
 // ──────────────────────────────────────────────────────────────
