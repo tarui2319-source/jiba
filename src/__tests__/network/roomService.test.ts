@@ -18,7 +18,7 @@ jest.mock('../../network/supabaseClient', () => ({
 /**
  * findOrCreateRoom 用モック。
  * roomService.ts の select チェーン:
- *   .select('*').eq(mode).eq(status).neq(red_id).gte(created_at).order().limit(1)
+ *   .select('*').eq(mode).eq(status).neq(second_id).gte(created_at).order().limit(1)
  *
  * 複数 .eq() をサポートするため、全メソッドが同じ queryChain を返すフルエントチェーンを使用。
  */
@@ -26,7 +26,7 @@ function mockForFindOrCreate({
   searchResult = null as Record<string, unknown> | null,
   searchError  = null as { message: string } | null,
   joinError    = null as { message: string } | null,
-  insertedRoom = { id: 'created-room', mode: 'quick', status: 'waiting', red_id: 'my-player-uuid' } as Record<string, unknown>,
+  insertedRoom = { id: 'created-room', mode: 'quick', status: 'waiting', second_id: 'my-player-uuid' } as Record<string, unknown>,
 } = {}) {
   // ── select チェーン用フルエントオブジェクト ────────────────
   // roomService は .select().eq().eq().neq().gte().order().limit() と複数の
@@ -74,24 +74,24 @@ function mockForFindOrCreate({
 describe('findOrCreateRoom', () => {
   describe('正常系', () => {
     it('waiting ルームが見つかった場合、BLUE として参加する', async () => {
-      const existingRoom = { id: 'room-1', mode: 'quick', status: 'waiting', red_id: 'other-player' };
+      const existingRoom = { id: 'room-1', mode: 'quick', status: 'waiting', second_id: 'other-player' };
       mockForFindOrCreate({ searchResult: existingRoom, joinError: null });
 
       const result = await findOrCreateRoom('quick');
 
-      expect(result.myPlayer).toBe('blue');
+      expect(result.myPlayer).toBe('first');
       expect(result.roomId).toBe('room-1');
       expect(result.mode).toBe('quick');
       expect(result.nextOpponentSeq).toBe(0);
     });
 
     it('waiting ルームがない場合、RED として新規作成する', async () => {
-      const createdRoom = { id: 'room-2', mode: 'standard', status: 'waiting', red_id: 'my-player-uuid' };
+      const createdRoom = { id: 'room-2', mode: 'standard', status: 'waiting', second_id: 'my-player-uuid' };
       mockForFindOrCreate({ searchResult: null, insertedRoom: createdRoom });
 
       const result = await findOrCreateRoom('standard');
 
-      expect(result.myPlayer).toBe('red');
+      expect(result.myPlayer).toBe('second');
       expect(result.roomId).toBe('room-2');
       expect(result.mode).toBe('standard');
     });
@@ -124,7 +124,7 @@ describe('findOrCreateRoom', () => {
     });
 
     it('競合でジョインに失敗した場合、ROOM_TAKEN エラーを投げる', async () => {
-      const existingRoom = { id: 'room-1', mode: 'quick', status: 'waiting', red_id: 'other-player' };
+      const existingRoom = { id: 'room-1', mode: 'quick', status: 'waiting', second_id: 'other-player' };
       mockForFindOrCreate({
         searchResult: existingRoom,
         joinError: { message: 'conflict' },
@@ -165,7 +165,7 @@ describe('findOrCreateRoom', () => {
 
       await findOrCreateRoom('quick');
 
-      expect(neqFn).toHaveBeenCalledWith('red_id', 'my-player-uuid');
+      expect(neqFn).toHaveBeenCalledWith('second_id', 'my-player-uuid');
     });
 
     it('closeRoom は finished ルームに対しても例外を投げない', async () => {
@@ -185,8 +185,8 @@ describe('findOrCreateRoom', () => {
 // ──────────────────────────────────────────────────────────────
 
 describe('deleteOwnWaitingRoom', () => {
-  it('id・red_id・status のガードを付けて DELETE を呼ぶ', async () => {
-    // delete().eq('id').eq('red_id').eq('status')
+  it('id・second_id・status のガードを付けて DELETE を呼ぶ', async () => {
+    // delete().eq('id').eq('second_id').eq('status')
     const eq3 = jest.fn().mockResolvedValue({ error: null });
     const eq2 = jest.fn().mockReturnValue({ eq: eq3 });
     const eq1 = jest.fn().mockReturnValue({ eq: eq2 });
@@ -197,9 +197,9 @@ describe('deleteOwnWaitingRoom', () => {
 
     await deleteOwnWaitingRoom('room-1');
 
-    // チェーン順: .eq('id','room-1') → .eq('red_id','my-player-uuid') → .eq('status','waiting')
+    // チェーン順: .eq('id','room-1') → .eq('second_id','my-player-uuid') → .eq('status','waiting')
     expect(eq1).toHaveBeenCalledWith('id', 'room-1');
-    expect(eq2).toHaveBeenCalledWith('red_id', 'my-player-uuid');
+    expect(eq2).toHaveBeenCalledWith('second_id', 'my-player-uuid');
     expect(eq3).toHaveBeenCalledWith('status', 'waiting');
   });
 

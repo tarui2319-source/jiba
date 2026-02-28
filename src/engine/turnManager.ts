@@ -17,13 +17,13 @@ export interface TurnState {
 }
 
 /**
- * 初期 TurnState を生成する。先手は blue 固定。
+ * 初期 TurnState を生成する。先手は first 固定。
  */
 export function createTurnState(mode: GameMode): TurnState {
   const total = MAX_MOVES[mode];
   return {
-    currentPlayer: 'blue',
-    movesLeft: { blue: total, red: total },
+    currentPlayer: 'first',
+    movesLeft: { first: total, second: total },
     phase: 'playing',
     moveHistory: [],
   };
@@ -57,14 +57,14 @@ export function applyTurn(
   const nextBoard = applyAction(board, action, currentPlayer);
 
   const nextMovesLeft: Record<Player, number> = {
-    blue: state.movesLeft.blue - (currentPlayer === 'blue' ? 1 : 0),
-    red:  state.movesLeft.red  - (currentPlayer === 'red'  ? 1 : 0),
+    first:  state.movesLeft.first  - (currentPlayer === 'first'  ? 1 : 0),
+    second: state.movesLeft.second - (currentPlayer === 'second' ? 1 : 0),
   };
 
-  const isFinished = nextMovesLeft.blue === 0 && nextMovesLeft.red === 0;
+  const isFinished = nextMovesLeft.first === 0 && nextMovesLeft.second === 0;
 
   const nextState: TurnState = {
-    currentPlayer: currentPlayer === 'blue' ? 'red' : 'blue',
+    currentPlayer: currentPlayer === 'first' ? 'second' : 'first',
     movesLeft: nextMovesLeft,
     phase: isFinished ? 'finished' : 'playing',
     moveHistory: [
@@ -84,9 +84,9 @@ export function isGameOver(state: TurnState): boolean {
 }
 
 /**
- * 経過手数を返す（blue + red の合計）。
+ * 経過手数を返す（first + second の合計）。
  */
 export function totalMoves(state: TurnState, mode: GameMode): number {
   const total = MAX_MOVES[mode];
-  return (total - state.movesLeft.blue) + (total - state.movesLeft.red);
+  return (total - state.movesLeft.first) + (total - state.movesLeft.second);
 }

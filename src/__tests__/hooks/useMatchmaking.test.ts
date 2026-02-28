@@ -48,7 +48,7 @@ describe('useMatchmaking', () => {
   describe('正常系', () => {
     it('BLUE パス: searching → matched（即座）', async () => {
       const blueResult: MatchResult = {
-        roomId: 'room-1', myPlayer: 'blue', mode: 'quick', nextOpponentSeq: 0,
+        roomId: 'room-1', myPlayer: 'first', mode: 'quick', nextOpponentSeq: 0,
       };
       (findOrCreateRoom as jest.Mock).mockResolvedValue(blueResult);
 
@@ -68,7 +68,7 @@ describe('useMatchmaking', () => {
 
     it('RED パス: searching → waiting_for_opponent → matched（ポーリング解決）', async () => {
       const redResult: MatchResult = {
-        roomId: 'room-2', myPlayer: 'red', mode: 'standard', nextOpponentSeq: 0,
+        roomId: 'room-2', myPlayer: 'second', mode: 'standard', nextOpponentSeq: 0,
       };
       (findOrCreateRoom as jest.Mock).mockResolvedValue(redResult);
       // 1回目の即時ポーリングは 'waiting'（中間状態を観察できるように）
@@ -93,13 +93,13 @@ describe('useMatchmaking', () => {
 
       expect(result.current.matchState.status).toBe('matched');
       if (result.current.matchState.status === 'matched') {
-        expect(result.current.matchState.result.myPlayer).toBe('red');
+        expect(result.current.matchState.result.myPlayer).toBe('second');
       }
     });
 
     it('waiting_for_opponent → polling が waiting を返している間は状態変化しない', async () => {
       const redResult: MatchResult = {
-        roomId: 'room-3', myPlayer: 'red', mode: 'quick', nextOpponentSeq: 0,
+        roomId: 'room-3', myPlayer: 'second', mode: 'quick', nextOpponentSeq: 0,
       };
       (findOrCreateRoom as jest.Mock).mockResolvedValue(redResult);
       (pollRoomStatus as jest.Mock)
@@ -140,7 +140,7 @@ describe('useMatchmaking', () => {
 
     it('ROOM_TAKEN: 1 回自動リトライして成功すれば matched', async () => {
       const blueResult: MatchResult = {
-        roomId: 'room-5', myPlayer: 'blue', mode: 'quick', nextOpponentSeq: 0,
+        roomId: 'room-5', myPlayer: 'first', mode: 'quick', nextOpponentSeq: 0,
       };
       (findOrCreateRoom as jest.Mock)
         .mockRejectedValueOnce(new Error('ROOM_TAKEN'))
@@ -168,7 +168,7 @@ describe('useMatchmaking', () => {
 
     it('60 秒タイムアウト → error', async () => {
       const redResult: MatchResult = {
-        roomId: 'room-6', myPlayer: 'red', mode: 'quick', nextOpponentSeq: 0,
+        roomId: 'room-6', myPlayer: 'second', mode: 'quick', nextOpponentSeq: 0,
       };
       (findOrCreateRoom as jest.Mock).mockResolvedValue(redResult);
       (pollRoomStatus as jest.Mock).mockResolvedValue('waiting');
@@ -204,7 +204,7 @@ describe('useMatchmaking', () => {
 
     it('cancelMatchmaking: waiting_for_opponent 時に deleteOwnWaitingRoom を呼ぶ', async () => {
       const redResult: MatchResult = {
-        roomId: 'room-7', myPlayer: 'red', mode: 'quick', nextOpponentSeq: 0,
+        roomId: 'room-7', myPlayer: 'second', mode: 'quick', nextOpponentSeq: 0,
       };
       (findOrCreateRoom as jest.Mock).mockResolvedValue(redResult);
       (pollRoomStatus as jest.Mock).mockResolvedValue('waiting');
@@ -224,7 +224,7 @@ describe('useMatchmaking', () => {
 
     it('cancelMatchmaking 後は状態が idle に戻る', async () => {
       const redResult: MatchResult = {
-        roomId: 'room-8', myPlayer: 'red', mode: 'quick', nextOpponentSeq: 0,
+        roomId: 'room-8', myPlayer: 'second', mode: 'quick', nextOpponentSeq: 0,
       };
       (findOrCreateRoom as jest.Mock).mockResolvedValue(redResult);
       (pollRoomStatus as jest.Mock).mockResolvedValue('waiting');

@@ -22,14 +22,14 @@ interface CellProps {
 
 /** 影響値の強さに応じてセル背景色を決める（0〜最大値で段階変化） */
 function bgColor(controller: Player | 'neutral', value: number): string {
-  if (controller === 'blue') {
+  if (controller === 'first') {
     // 影響値が高いほど鮮やか（dim → 中間ブルー）
     return value >= 8 ? '#1e3a6e'
          : value >= 4 ? '#172f5c'
          : value >= 1 ? Colors.blueDim
          : Colors.surface;
   }
-  if (controller === 'red') {
+  if (controller === 'second') {
     return value >= 8 ? '#5a1a1a'
          : value >= 4 ? '#4a1515'
          : value >= 1 ? Colors.redDim
@@ -39,8 +39,8 @@ function bgColor(controller: Player | 'neutral', value: number): string {
 }
 
 function textColor(controller: Player | 'neutral'): string {
-  if (controller === 'blue') return Colors.blueLight;
-  if (controller === 'red') return Colors.redLight;
+  if (controller === 'first') return Colors.blueLight;
+  if (controller === 'second') return Colors.redLight;
   return Colors.neutralText;
 }
 
@@ -95,7 +95,7 @@ export const Cell = React.memo<CellProps>(({
 
   // 背景色: アンカーあり→プレイヤーカラー、なし→影響値ベース
   const bg = hasAnyAnchor
-    ? (anchorPlayer === 'blue' ? Colors.blue : Colors.red)
+    ? (anchorPlayer === 'first' ? Colors.blue : Colors.red)
     : bgColor(cellState.controller, cellState.displayValue);
 
   const anchorFontSize = Math.floor(cellSize * 0.4);

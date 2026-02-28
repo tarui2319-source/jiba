@@ -14,7 +14,7 @@ interface UseCpuOpponentOptions {
   gameStateReturn: UseGameStateReturn;
   /** CPU対戦モードが有効か */
   isCpuMode: boolean;
-  /** CPU が担当するプレイヤー（固定: 'red'） */
+  /** CPU が担当するプレイヤー（固定: 'second'） */
   cpuSide: Player;
   /** 難易度 1〜4 */
   difficulty: CpuDifficulty;

@@ -42,12 +42,16 @@ export const en: Record<I18nKey, string> = {
   moves_left: '{n} Left',
   wave: 'WAVE',
 
+  // ── Player labels ──────────────────────
+  player_first: 'First',
+  player_second: 'Second',
+
   // ── Result ─────────────────────────────
-  blue_wins: 'BLUE Wins!',
-  red_wins: 'RED Wins!',
+  first_wins: 'First Wins!',
+  second_wins: 'Second Wins!',
   draw: 'Draw',
-  blue_surrender: 'BLUE Resigned',
-  red_surrender: 'RED Resigned',
+  first_surrender: 'First Resigned',
+  second_surrender: 'Second Resigned',
   squares: 'sq',
   power: 'Power: ',
 
@@ -106,7 +110,7 @@ export const en: Record<I18nKey, string> = {
   tut_6_desc: "The moment you place an anchor, power spreads outward in the shape's pattern",
 
   tut_7_title: 'Higher Power Wins',
-  tut_7_desc: 'BLUE power 4 vs RED power 2 → BLUE wins and claims that cell!',
+  tut_7_desc: 'First power 4 vs Second power 2 → First wins and claims that cell!',
 
   tut_8_title: 'Anchor Is Untouchable',
   tut_8_desc: "No matter how high the enemy's power, your anchor cell can NEVER be taken",

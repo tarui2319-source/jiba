@@ -45,7 +45,7 @@ export interface UseOnlineGameReturn {
   /** オンライン降参（ローカル + DB 非同期） */
   surrenderOnline: () => void;
   isOnlineGame: boolean;
-  myPlayer: 'blue' | 'red' | null;
+  myPlayer: 'first' | 'second' | null;
   /** Realtime 再接続中フラグ */
   isReconnecting: boolean;
   /** MAX_RETRIES 超過で再接続を断念したフラグ */
@@ -96,7 +96,7 @@ export function useOnlineGame({
   const handleOpponentMove = useCallback((row: MoveRow) => {
     // 相手が降参した場合
     if (row.move_type === 'surrender') {
-      surrender(row.player as 'blue' | 'red');
+      surrender(row.player as 'first' | 'second');
       return;
     }
 
@@ -117,7 +117,7 @@ export function useOnlineGame({
     const { roomId, myPlayer, nextOpponentSeq } = matchResult;
 
     // 期待 seq をリセット
-    const defaultFirstSeq = myPlayer === 'blue' ? 1 : 0;
+    const defaultFirstSeq = myPlayer === 'first' ? 1 : 0;
     expectedSeqRef.current = nextOpponentSeq > 0 ? nextOpponentSeq : defaultFirstSeq;
     pendingMovesRef.current.clear();
     roomClosedRef.current = false;

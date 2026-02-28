@@ -11,25 +11,25 @@ describe('getRandomMove', () => {
 
   test('空の盤面: 返される手は必ず合法手である', () => {
     const board = createEmptyBoard(SIZE);
-    const move = getRandomMove(board, 'blue', SIZE);
+    const move = getRandomMove(board, 'first', SIZE);
     expect(move).not.toBeNull();
-    expect(isLegalMove(board, move!, 'blue', SIZE)).toBe(true);
+    expect(isLegalMove(board, move!, 'first', SIZE)).toBe(true);
   });
 
   test('seed=0 で常に同じ手が返る（決定論的テスト）', () => {
     const board = createEmptyBoard(SIZE);
     const rand = () => 0; // 常にインデックス0 → 最初の合法手
-    const move1 = getRandomMove(board, 'blue', SIZE, rand);
-    const move2 = getRandomMove(board, 'blue', SIZE, rand);
+    const move1 = getRandomMove(board, 'first', SIZE, rand);
+    const move2 = getRandomMove(board, 'first', SIZE, rand);
     expect(move1).toEqual(move2);
   });
 
   test('seed=0.999... で最後の合法手が返る', () => {
     const board = createEmptyBoard(SIZE);
     const rand = () => 0.9999;
-    const move = getRandomMove(board, 'blue', SIZE, rand);
+    const move = getRandomMove(board, 'first', SIZE, rand);
     expect(move).not.toBeNull();
-    expect(isLegalMove(board, move!, 'blue', SIZE)).toBe(true);
+    expect(isLegalMove(board, move!, 'first', SIZE)).toBe(true);
   });
 
   // ──────────────────────────────────────────────────────────────────
@@ -41,24 +41,24 @@ describe('getRandomMove', () => {
     // 全マスに red のアンカーを配置
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
-        board = applyAction(board, { type: 'build', row: r, col: c, shape: 'weak' }, 'red');
+        board = applyAction(board, { type: 'build', row: r, col: c, shape: 'weak' }, 'second');
       }
     }
-    const move = getRandomMove(board, 'blue', SIZE);
+    const move = getRandomMove(board, 'first', SIZE);
     expect(move).toBeNull();
   });
 
   test('返される手の type は build か stack のどちらか', () => {
     const board = createEmptyBoard(SIZE);
-    const move = getRandomMove(board, 'blue', SIZE);
+    const move = getRandomMove(board, 'first', SIZE);
     expect(['build', 'stack']).toContain(move?.type);
   });
 
   test('stack 可能なマスがある場合も合法手を返す', () => {
     let board = createEmptyBoard(SIZE);
-    board = applyAction(board, { type: 'build', row: 3, col: 3, shape: 'weak' }, 'blue');
-    const move = getRandomMove(board, 'blue', SIZE);
+    board = applyAction(board, { type: 'build', row: 3, col: 3, shape: 'weak' }, 'first');
+    const move = getRandomMove(board, 'first', SIZE);
     expect(move).not.toBeNull();
-    expect(isLegalMove(board, move!, 'blue', SIZE)).toBe(true);
+    expect(isLegalMove(board, move!, 'first', SIZE)).toBe(true);
   });
 });

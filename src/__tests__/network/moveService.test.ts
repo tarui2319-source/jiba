@@ -66,13 +66,13 @@ describe('insertMove', () => {
     it('正しい行形式を DB に送信する', async () => {
       const insertFn = mockInsert(null);
 
-      await insertMove('room-1', 'blue', 0, {
+      await insertMove('room-1', 'first', 0, {
         type: 'build', row: 2, col: 3, shape: 'weak',
       });
 
       expect(insertFn).toHaveBeenCalledWith({
         room_id: 'room-1',
-        player: 'blue',
+        player: 'first',
         player_id: 'my-player-uuid',
         seq: 0,
         move_type: 'build',
@@ -85,13 +85,13 @@ describe('insertMove', () => {
     it('stack タイプの手番も正しく送信する', async () => {
       const insertFn = mockInsert(null);
 
-      await insertMove('room-2', 'red', 1, {
+      await insertMove('room-2', 'second', 1, {
         type: 'stack', row: 0, col: 0, shape: 'strong_vert',
       });
 
       expect(insertFn).toHaveBeenCalledWith(expect.objectContaining({
         move_type: 'stack',
-        player: 'red',
+        player: 'second',
         seq: 1,
         shape: 'strong_vert',
       }));
@@ -102,7 +102,7 @@ describe('insertMove', () => {
     it('DB エラーが発生した場合、エラーを投げる', async () => {
       mockInsert({ message: 'insert error' });
 
-      await expect(insertMove('room-1', 'blue', 0, {
+      await expect(insertMove('room-1', 'first', 0, {
         type: 'build', row: 0, col: 0, shape: 'weak',
       })).rejects.toThrow('insert error');
     });
@@ -112,7 +112,7 @@ describe('insertMove', () => {
     it('seq=0 の最初の手番を正しく送信する', async () => {
       const insertFn = mockInsert(null);
 
-      await insertMove('room-1', 'blue', 0, { type: 'build', row: 0, col: 0, shape: 'weak' });
+      await insertMove('room-1', 'first', 0, { type: 'build', row: 0, col: 0, shape: 'weak' });
 
       expect(insertFn).toHaveBeenCalledWith(expect.objectContaining({ seq: 0 }));
     });
@@ -120,7 +120,7 @@ describe('insertMove', () => {
     it('seq=35 の最終手番（standard mode）を送信できる', async () => {
       const insertFn = mockInsert(null);
 
-      await insertMove('room-1', 'red', 35, { type: 'build', row: 8, col: 8, shape: 'weak' });
+      await insertMove('room-1', 'second', 35, { type: 'build', row: 8, col: 8, shape: 'weak' });
 
       expect(insertFn).toHaveBeenCalledWith(expect.objectContaining({ seq: 35 }));
     });
@@ -143,11 +143,11 @@ describe('insertSurrenderMove', () => {
   it('move_type=surrender で DB に送信する', async () => {
     const insertFn = mockInsert(null);
 
-    await insertSurrenderMove('room-1', 'blue', 5);
+    await insertSurrenderMove('room-1', 'first', 5);
 
     expect(insertFn).toHaveBeenCalledWith({
       room_id: 'room-1',
-      player: 'blue',
+      player: 'first',
       player_id: 'my-player-uuid',
       seq: 5,
       move_type: 'surrender',
@@ -160,7 +160,7 @@ describe('insertSurrenderMove', () => {
   it('DB エラーが発生した場合、エラーを投げる', async () => {
     mockInsert({ message: 'surrender insert error' });
 
-    await expect(insertSurrenderMove('room-1', 'red', 3)).rejects.toThrow('surrender insert error');
+    await expect(insertSurrenderMove('room-1', 'second', 3)).rejects.toThrow('surrender insert error');
   });
 });
 
@@ -184,10 +184,10 @@ describe('subscribeToOpponentMoves', () => {
       mockChannel();
       const onMove = jest.fn();
 
-      subscribeToOpponentMoves('room-1', 'blue', onMove);
+      subscribeToOpponentMoves('room-1', 'first', onMove);
 
       // 相手（red）の手番 → コールバックが呼ばれる
-      capturedCallback!({ new: { player: 'red', seq: 1 } as MoveRow });
+      capturedCallback!({ new: { player: 'second', seq: 1 } as MoveRow });
       expect(onMove).toHaveBeenCalledTimes(1);
     });
 
@@ -195,17 +195,17 @@ describe('subscribeToOpponentMoves', () => {
       mockChannel();
       const onMove = jest.fn();
 
-      subscribeToOpponentMoves('room-1', 'blue', onMove);
+      subscribeToOpponentMoves('room-1', 'first', onMove);
 
       // 自分（blue）の echo → コールバックは呼ばれない
-      capturedCallback!({ new: { player: 'blue', seq: 0 } as MoveRow });
+      capturedCallback!({ new: { player: 'first', seq: 0 } as MoveRow });
       expect(onMove).not.toHaveBeenCalled();
     });
 
     it('チャンネルオブジェクトを返す（cleanup 用）', () => {
       const ch = mockChannel();
 
-      const channel = subscribeToOpponentMoves('room-1', 'blue', jest.fn());
+      const channel = subscribeToOpponentMoves('room-1', 'first', jest.fn());
 
       expect(channel).toBe(ch);
     });
@@ -216,12 +216,12 @@ describe('subscribeToOpponentMoves', () => {
       mockChannel();
       const onMove = jest.fn();
 
-      subscribeToOpponentMoves('room-1', 'red', onMove);
+      subscribeToOpponentMoves('room-1', 'second', onMove);
 
-      capturedCallback!({ new: { player: 'blue', seq: 0 } as MoveRow });
+      capturedCallback!({ new: { player: 'first', seq: 0 } as MoveRow });
       expect(onMove).toHaveBeenCalledTimes(1);
 
-      capturedCallback!({ new: { player: 'red', seq: 1 } as MoveRow });
+      capturedCallback!({ new: { player: 'second', seq: 1 } as MoveRow });
       expect(onMove).toHaveBeenCalledTimes(1); // red の echo は無視
     });
   });
@@ -231,9 +231,9 @@ describe('subscribeToOpponentMoves', () => {
       mockChannel();
       const onMove = jest.fn();
 
-      subscribeToOpponentMoves('room-1', 'blue', onMove);
+      subscribeToOpponentMoves('room-1', 'first', onMove);
 
-      capturedCallback!({ new: { player: 'red', seq: 0 } as MoveRow });
+      capturedCallback!({ new: { player: 'second', seq: 0 } as MoveRow });
       expect(onMove).toHaveBeenCalledWith(expect.objectContaining({ seq: 0 }));
     });
   });
@@ -247,7 +247,7 @@ describe('subscribeToOpponentMoves', () => {
       mockChannel();
       const onStatusChange = jest.fn();
 
-      subscribeToOpponentMoves('room-1', 'blue', jest.fn(), onStatusChange);
+      subscribeToOpponentMoves('room-1', 'first', jest.fn(), onStatusChange);
 
       capturedStatusCb!('SUBSCRIBED');
       expect(onStatusChange).toHaveBeenCalledWith('SUBSCRIBED' as ChannelStatus);
@@ -257,7 +257,7 @@ describe('subscribeToOpponentMoves', () => {
       mockChannel();
       const onStatusChange = jest.fn();
 
-      subscribeToOpponentMoves('room-1', 'blue', jest.fn(), onStatusChange);
+      subscribeToOpponentMoves('room-1', 'first', jest.fn(), onStatusChange);
 
       capturedStatusCb!('CHANNEL_ERROR');
       expect(onStatusChange).toHaveBeenCalledWith('CHANNEL_ERROR' as ChannelStatus);
@@ -268,7 +268,7 @@ describe('subscribeToOpponentMoves', () => {
 
       // 4 引数なしで呼び出し
       expect(() => {
-        subscribeToOpponentMoves('room-1', 'blue', jest.fn());
+        subscribeToOpponentMoves('room-1', 'first', jest.fn());
         capturedStatusCb!('SUBSCRIBED'); // status callback を発火しても OK
       }).not.toThrow();
     });
@@ -293,8 +293,8 @@ describe('fetchExistingMoves', () => {
   describe('正常系', () => {
     it('seq 昇順で全手番を返す', async () => {
       const moves: Partial<MoveRow>[] = [
-        { id: 1, seq: 0, player: 'blue' as const },
-        { id: 2, seq: 1, player: 'red' as const },
+        { id: 1, seq: 0, player: 'first' as const },
+        { id: 2, seq: 1, player: 'second' as const },
       ];
       const orderFn = mockSelect(moves);
 
@@ -345,7 +345,7 @@ describe('moveRowToAction', () => {
   describe('正常系', () => {
     it('MoveRow を Action に正しく変換する', () => {
       const row: MoveRow = {
-        id: 1, room_id: 'r', player: 'blue', player_id: 'p',
+        id: 1, room_id: 'r', player: 'first', player_id: 'p',
         seq: 0, move_type: 'build', row: 3, col: 4, shape: 'mid_cross',
         created_at: '2026-01-01',
       };
@@ -355,7 +355,7 @@ describe('moveRowToAction', () => {
 
     it('stack タイプも正しく変換する', () => {
       const row: MoveRow = {
-        id: 2, room_id: 'r', player: 'red', player_id: 'p',
+        id: 2, room_id: 'r', player: 'second', player_id: 'p',
         seq: 1, move_type: 'stack', row: 0, col: 0, shape: 'strong_vert',
         created_at: '2026-01-01',
       };

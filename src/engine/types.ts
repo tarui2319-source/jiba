@@ -3,7 +3,7 @@
  * UI 非依存・純粋関数専用
  */
 
-export type Player = 'blue' | 'red';
+export type Player = 'first' | 'second';
 
 /**
  * ShapeKind: アンカーの形状。7種類。
@@ -35,9 +35,9 @@ export type Board = Cell[][];
 
 /** computeInfluence の計算結果（1マス分） */
 export interface CellState {
-  blue: number;
-  red: number;
-  /** blue - red */
+  first: number;
+  second: number;
+  /** first - second */
   d: number;
   /** D値の符号で決まる支配者 */
   controller: Player | 'neutral';
@@ -66,10 +66,10 @@ export const MAX_MOVES: Record<GameMode, number> = {
 /** 対局結果 */
 export interface GameResult {
   winner: Player | 'draw';
-  blueCount: number;
-  redCount: number;
+  firstCount: number;
+  secondCount: number;
   neutralCount: number;
   /** タイブレーク: |D(c)| 総和 */
-  bluePower: number;
-  redPower: number;
+  firstPower: number;
+  secondPower: number;
 }

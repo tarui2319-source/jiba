@@ -11,7 +11,7 @@ describe('getLegalMoves', () => {
 
   test('空の盤面: Build のみ・全マス×全 ShapeKind', () => {
     const board = createEmptyBoard(SIZE);
-    const moves = getLegalMoves(board, 'blue', SIZE);
+    const moves = getLegalMoves(board, 'first', SIZE);
     const totalCells = SIZE * SIZE;
     // 全マス Build × 7 ShapeKinds
     expect(moves.length).toBe(totalCells * ALL_SHAPES.length);
@@ -20,8 +20,8 @@ describe('getLegalMoves', () => {
 
   test('blue が1マスにアンカーを置いた後: そのマスは Stack のみ・残りは Build', () => {
     let board = createEmptyBoard(SIZE);
-    board = applyAction(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'blue');
-    const moves = getLegalMoves(board, 'blue', SIZE);
+    board = applyAction(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'first');
+    const moves = getLegalMoves(board, 'first', SIZE);
 
     const buildMoves = moves.filter((m) => m.type === 'build');
     const stackMoves = moves.filter((m) => m.type === 'stack');
@@ -36,8 +36,8 @@ describe('getLegalMoves', () => {
 
   test('red のアンカーがあるマスは blue にとって Build 不可・Stack 不可', () => {
     let board = createEmptyBoard(SIZE);
-    board = applyAction(board, { type: 'build', row: 2, col: 3, shape: 'weak' }, 'red');
-    const moves = getLegalMoves(board, 'blue', SIZE);
+    board = applyAction(board, { type: 'build', row: 2, col: 3, shape: 'weak' }, 'second');
+    const moves = getLegalMoves(board, 'first', SIZE);
 
     // (2,3) を含む Build/Stack が存在しない
     const movesAt23 = moves.filter((m) => m.row === 2 && m.col === 3);
@@ -52,10 +52,10 @@ describe('getLegalMoves', () => {
     let board = createEmptyBoard(SIZE);
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
-        board = applyAction(board, { type: 'build', row: r, col: c, shape: 'weak' }, 'red');
+        board = applyAction(board, { type: 'build', row: r, col: c, shape: 'weak' }, 'second');
       }
     }
-    const moves = getLegalMoves(board, 'blue', SIZE);
+    const moves = getLegalMoves(board, 'first', SIZE);
     expect(moves.length).toBe(0);
   });
 
@@ -63,8 +63,8 @@ describe('getLegalMoves', () => {
     let board = createEmptyBoard(SIZE);
     // red が (3,3) に mid_cross（上下左右 power=2）を配置
     // → (2,3)(4,3)(3,2)(3,4) が red 支配になる
-    board = applyAction(board, { type: 'build', row: 3, col: 3, shape: 'mid_cross' }, 'red');
-    const moves = getLegalMoves(board, 'blue', SIZE);
+    board = applyAction(board, { type: 'build', row: 3, col: 3, shape: 'mid_cross' }, 'second');
+    const moves = getLegalMoves(board, 'first', SIZE);
 
     // red 支配マスへの Build が存在しないこと
     const enemyControlled = [[2, 3], [4, 3], [3, 2], [3, 4]];
@@ -77,18 +77,18 @@ describe('getLegalMoves', () => {
 
   test('isLegalMove: 敵支配の空マスへの Build は不正', () => {
     let board = createEmptyBoard(SIZE);
-    board = applyAction(board, { type: 'build', row: 3, col: 3, shape: 'mid_cross' }, 'red');
+    board = applyAction(board, { type: 'build', row: 3, col: 3, shape: 'mid_cross' }, 'second');
     // (2,3) は red 支配の空マス
-    expect(isLegalMove(board, { type: 'build', row: 2, col: 3, shape: 'weak' }, 'blue', SIZE)).toBe(false);
+    expect(isLegalMove(board, { type: 'build', row: 2, col: 3, shape: 'weak' }, 'first', SIZE)).toBe(false);
     // 中立マスは依然 Build 可
-    expect(isLegalMove(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'blue', SIZE)).toBe(true);
+    expect(isLegalMove(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'first', SIZE)).toBe(true);
   });
 
   test('自分のマスと相手のマスが混在: 自分のマスのみ Stack できる', () => {
     let board = createEmptyBoard(SIZE);
-    board = applyAction(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'blue');
-    board = applyAction(board, { type: 'build', row: 0, col: 1, shape: 'weak' }, 'red');
-    const moves = getLegalMoves(board, 'blue', SIZE);
+    board = applyAction(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'first');
+    board = applyAction(board, { type: 'build', row: 0, col: 1, shape: 'weak' }, 'second');
+    const moves = getLegalMoves(board, 'first', SIZE);
 
     const stacks = moves.filter((m) => m.type === 'stack');
     // Stack は (0,0) のみ
@@ -101,24 +101,24 @@ describe('getLegalMoves', () => {
 describe('isLegalMove', () => {
   test('空マスへの Build は合法', () => {
     const board = createEmptyBoard(SIZE);
-    expect(isLegalMove(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'blue', SIZE)).toBe(true);
+    expect(isLegalMove(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'first', SIZE)).toBe(true);
   });
 
   test('非空マスへの Build は不正', () => {
     let board = createEmptyBoard(SIZE);
-    board = applyAction(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'blue');
-    expect(isLegalMove(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'blue', SIZE)).toBe(false);
+    board = applyAction(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'first');
+    expect(isLegalMove(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'first', SIZE)).toBe(false);
   });
 
   test('盤外座標は不正', () => {
     const board = createEmptyBoard(SIZE);
-    expect(isLegalMove(board, { type: 'build', row: -1, col: 0, shape: 'weak' }, 'blue', SIZE)).toBe(false);
-    expect(isLegalMove(board, { type: 'build', row: SIZE, col: 0, shape: 'weak' }, 'blue', SIZE)).toBe(false);
+    expect(isLegalMove(board, { type: 'build', row: -1, col: 0, shape: 'weak' }, 'first', SIZE)).toBe(false);
+    expect(isLegalMove(board, { type: 'build', row: SIZE, col: 0, shape: 'weak' }, 'first', SIZE)).toBe(false);
   });
 
   test('相手アンカーのみのマスへの Stack は不正', () => {
     let board = createEmptyBoard(SIZE);
-    board = applyAction(board, { type: 'build', row: 1, col: 1, shape: 'weak' }, 'red');
-    expect(isLegalMove(board, { type: 'stack', row: 1, col: 1, shape: 'mid_cross' }, 'blue', SIZE)).toBe(false);
+    board = applyAction(board, { type: 'build', row: 1, col: 1, shape: 'weak' }, 'second');
+    expect(isLegalMove(board, { type: 'stack', row: 1, col: 1, shape: 'mid_cross' }, 'first', SIZE)).toBe(false);
   });
 });

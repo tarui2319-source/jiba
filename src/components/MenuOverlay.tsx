@@ -42,23 +42,23 @@ export interface MenuOverlayProps {
 
 type CellColor =
   | 'empty'
-  | 'blue'
-  | 'blue_sel'        // blue + 黄色枠（設置可能マスを示す）
-  | 'red'
+  | 'first'
+  | 'first_sel'        // blue + 黄色枠（設置可能マスを示す）
+  | 'second'
   | 'selected'
   | 'influence'
   | 'influence_strong'
-  | 'red_inf';        // RED の影響圏（半透明）
+  | 'second_inf';        // SECOND の影響圏（半透明）
 
 const CELL_BG: Record<CellColor, string> = {
   empty:            Colors.bg,
-  blue:             Colors.blue,
-  blue_sel:         Colors.blue,
-  red:              Colors.red,
+  first:             Colors.blue,
+  first_sel:         Colors.blue,
+  second:              Colors.red,
   selected:         Colors.bg,
   influence:        'rgba(79,142,247,0.28)',
   influence_strong: 'rgba(79,142,247,0.52)',
-  red_inf:          'rgba(240,82,82,0.28)',
+  second_inf:          'rgba(240,82,82,0.28)',
 };
 
 interface MiniBoardProps {
@@ -77,8 +77,8 @@ const MiniBoard = memo<MiniBoardProps>(({ board, cellSize }) => (
               width: cellSize,
               height: cellSize,
               backgroundColor: CELL_BG[cell],
-              borderWidth: (cell === 'selected' || cell === 'blue_sel') ? 2 : 0.5,
-              borderColor: (cell === 'selected' || cell === 'blue_sel')
+              borderWidth: (cell === 'selected' || cell === 'first_sel') ? 2 : 0.5,
+              borderColor: (cell === 'selected' || cell === 'first_sel')
                 ? Colors.selectedBorder
                 : Colors.borderSubtle,
             }}
@@ -143,10 +143,10 @@ MiniBoardLabeled.displayName = 'MiniBoardLabeled';
 // ──────────────────────────────────────────────────────────────
 
 const OBJ_BOARD: CellColor[][] = [
-  ['blue', 'blue', 'blue', 'red',   'empty'],
-  ['blue', 'blue', 'red',  'empty', 'empty'],
-  ['blue', 'empty','empty','empty', 'empty'],
-  ['blue', 'empty','empty','empty', 'empty'],
+  ['first', 'first', 'first', 'second',   'empty'],
+  ['first', 'first', 'second',  'empty', 'empty'],
+  ['first', 'empty','empty','empty', 'empty'],
+  ['first', 'empty','empty','empty', 'empty'],
   ['empty','empty','empty','empty', 'empty'],
 ];
 
@@ -258,7 +258,7 @@ SelectShapeIll.displayName = 'SelectShapeIll';
 const INF_BOARD: CellColor[][] = [
   ['empty', 'empty',     'empty',     'empty',     'empty'],
   ['empty', 'empty',     'influence', 'empty',     'empty'],
-  ['empty', 'influence', 'blue',      'influence', 'empty'],
+  ['empty', 'influence', 'first',      'influence', 'empty'],
   ['empty', 'empty',     'influence', 'empty',     'empty'],
   ['empty', 'empty',     'empty',     'empty',     'empty'],
 ];
@@ -301,11 +301,11 @@ InfluenceIll.displayName = 'InfluenceIll';
 
 // blue_sel = 自分が支配しているマス（黄色枠で「置ける」を表現）
 const PLACE_BOARD: CellColor[][] = [
-  ['blue_sel', 'empty',    'empty',    'red',      'empty'],
-  ['blue_sel', 'blue_sel', 'empty',    'empty',    'empty'],
-  ['empty',    'blue_sel', 'empty',    'blue_sel', 'empty'],
-  ['empty',    'empty',    'empty',    'blue_sel', 'red'],
-  ['empty',    'empty',    'red',      'empty',    'empty'],
+  ['first_sel', 'empty',    'empty',    'second',      'empty'],
+  ['first_sel', 'first_sel', 'empty',    'empty',    'empty'],
+  ['empty',    'first_sel', 'empty',    'first_sel', 'empty'],
+  ['empty',    'empty',    'empty',    'first_sel', 'second'],
+  ['empty',    'empty',    'second',      'empty',    'empty'],
 ];
 
 const PlacementIll = memo(() => (
@@ -332,7 +332,7 @@ PlacementIll.displayName = 'PlacementIll';
 const SPREAD_BOARD: CellColor[][] = [
   ['empty', 'empty',     'empty',     'empty',     'empty'],
   ['empty', 'empty',     'influence', 'empty',     'empty'],
-  ['empty', 'influence', 'blue',      'influence', 'empty'],
+  ['empty', 'influence', 'first',      'influence', 'empty'],
   ['empty', 'empty',     'influence', 'empty',     'empty'],
   ['empty', 'empty',     'empty',     'empty',     'empty'],
 ];
@@ -383,9 +383,9 @@ HigherPowerIll.displayName = 'HigherPowerIll';
 // ──────────────────────────────────────────────────────────────
 
 const IMMUNE_BOARD: CellColor[][] = [
-  ['red_inf', 'red_inf', 'red_inf'],
-  ['red_inf', 'blue',    'red_inf'],
-  ['red_inf', 'red_inf', 'red_inf'],
+  ['second_inf', 'second_inf', 'second_inf'],
+  ['second_inf', 'first',    'second_inf'],
+  ['second_inf', 'second_inf', 'second_inf'],
 ];
 const IMMUNE_LABELS: (string | null)[][] = [
   ['3', '3', '3'],

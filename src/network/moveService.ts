@@ -22,7 +22,7 @@ export type ChannelStatus = 'SUBSCRIBED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | 'CLOS
  */
 export async function insertMove(
   roomId: string,
-  player: 'blue' | 'red',
+  player: 'first' | 'second',
   seq: number,
   action: Action,
 ): Promise<void> {
@@ -45,7 +45,7 @@ export async function insertMove(
  */
 export async function insertSurrenderMove(
   roomId: string,
-  player: 'blue' | 'red',
+  player: 'first' | 'second',
   seq: number,
 ): Promise<void> {
   const sb = getSupabaseClient();
@@ -70,7 +70,7 @@ export async function insertSurrenderMove(
  */
 export function subscribeToOpponentMoves(
   roomId: string,
-  myPlayer: 'blue' | 'red',
+  myPlayer: 'first' | 'second',
   onMove: OnOpponentMove,
   onStatusChange?: (status: ChannelStatus) => void,
 ): RealtimeChannel {

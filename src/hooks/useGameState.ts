@@ -109,7 +109,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.turnState.phase === 'finished') return state;
 
       const surrenderer = action.player;
-      const winner: Player = surrenderer === 'blue' ? 'red' : 'blue';
+      const winner: Player = surrenderer === 'first' ? 'second' : 'first';
       const baseResult = getResult(state.influence);
       const surrenderResult: GameResult = { ...baseResult, winner };
       const finishedTurnState: TurnState = { ...state.turnState, phase: 'finished' };

@@ -50,8 +50,8 @@ try {
   // Web 環境など非対応の場合は無効化
 }
 
-/** CPU は常に RED を担当 */
-const CPU_SIDE = 'red' as const;
+/** CPU は常に SECOND を担当 */
+const CPU_SIDE = 'second' as const;
 
 export function GameScreen() {
   const { t } = useI18n();
@@ -255,8 +255,8 @@ export function GameScreen() {
   // スコア集計（表示用）
   // ──────────────────────────────────────────────────────────────────
 
-  const blueCount = influence.flat().filter((c) => c.controller === 'blue').length;
-  const redCount  = influence.flat().filter((c) => c.controller === 'red').length;
+  const firstCount = influence.flat().filter((c) => c.controller === 'first').length;
+  const secondCount = influence.flat().filter((c) => c.controller === 'second').length;
 
   // ──────────────────────────────────────────────────────────────────
   // セットアップハンドラ
@@ -296,7 +296,7 @@ export function GameScreen() {
 
   useEffect(() => {
     if (!result) return;
-    const mySide = isOnlineGame ? myPlayer : 'blue';
+    const mySide = isOnlineGame ? myPlayer : 'first';
     if (result.winner === 'draw') {
       playDraw();
     } else if (result.winner === mySide) {
@@ -336,7 +336,7 @@ export function GameScreen() {
       surrenderOnline();
     } else {
       // ローカル/CPU: 人間プレイヤーが降参
-      const surrenderer = gameMode === 'cpu' ? 'blue' : turnState.currentPlayer;
+      const surrenderer = gameMode === 'cpu' ? 'first' : turnState.currentPlayer;
       surrender(surrenderer);
     }
   }, [isOnlineGame, surrenderOnline, gameMode, turnState.currentPlayer, surrender]);
@@ -359,8 +359,8 @@ export function GameScreen() {
       <View style={styles.container}>
         {/* スコアバー */}
         <ScoreBar
-          blueCount={blueCount}
-          redCount={redCount}
+          firstCount={firstCount}
+          secondCount={secondCount}
           currentPlayer={turnState.currentPlayer}
           timerSeconds={seconds}
           isTimerWarning={isWarning}

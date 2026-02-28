@@ -17,8 +17,8 @@ const STALE_ROOM_MINUTES = 5;
 
 /**
  * ロビーを検索して参加 or 新規ルーム作成。
- * - 既存 waiting ルームが見つかった → BLUE として参加
- * - 見つからなかった               → RED として新規作成
+ * - 既存 waiting ルームが見つかった → FIRST として参加
+ * - 見つからなかった               → SECOND として新規作成
  * @throws ROOM_TAKEN  競合でジョインに失敗（呼び出し側で 1 回リトライ推奨）
  * @throws その他 DB エラー
  */
@@ -34,7 +34,7 @@ export async function findOrCreateRoom(mode: GameMode): Promise<MatchResult> {
     .select('*')
     .eq('mode', mode)
     .eq('status', 'waiting')
-    .neq('red_id', MY_PLAYER_ID)
+    .neq('second_id', MY_PLAYER_ID)
     .gte('created_at', staleThreshold)
     .order('created_at', { ascending: true })
     .limit(1);
@@ -49,7 +49,7 @@ export async function findOrCreateRoom(mode: GameMode): Promise<MatchResult> {
 }
 
 /**
- * RED クリエイターが対戦相手の参加を確認するポーリング用。
+ * SECOND クリエイターが対戦相手の参加を確認するポーリング用。
  * @returns 現在のルームステータス
  */
 export async function pollRoomStatus(
@@ -86,7 +86,7 @@ export async function deleteOwnWaitingRoom(roomId: string): Promise<void> {
     .from('rooms')
     .delete()
     .eq('id', roomId)
-    .eq('red_id', MY_PLAYER_ID)
+    .eq('second_id', MY_PLAYER_ID)
     .eq('status', 'waiting');
 }
 
@@ -98,7 +98,7 @@ async function _joinRoom(room: RoomRow): Promise<MatchResult> {
   const sb = getSupabaseClient();
   const { error } = await sb
     .from('rooms')
-    .update({ blue_id: MY_PLAYER_ID, status: 'playing' })
+    .update({ first_id: MY_PLAYER_ID, status: 'playing' })
     .eq('id', room.id)
     .eq('status', 'waiting'); // 競合防止: まだ waiting の場合のみ更新
 
@@ -106,7 +106,7 @@ async function _joinRoom(room: RoomRow): Promise<MatchResult> {
 
   return {
     roomId: room.id,
-    myPlayer: 'blue',
+    myPlayer: 'first',
     mode: room.mode,
     nextOpponentSeq: 0,
   };
@@ -116,7 +116,7 @@ async function _createRoom(mode: GameMode): Promise<MatchResult> {
   const sb = getSupabaseClient();
   const { data, error } = await sb
     .from('rooms')
-    .insert({ mode, red_id: MY_PLAYER_ID, status: 'waiting' })
+    .insert({ mode, second_id: MY_PLAYER_ID, status: 'waiting' })
     .select()
     .single();
 
@@ -124,7 +124,7 @@ async function _createRoom(mode: GameMode): Promise<MatchResult> {
 
   return {
     roomId: data.id,
-    myPlayer: 'red',
+    myPlayer: 'second',
     mode: data.mode as GameMode,
     nextOpponentSeq: 0,
   };
