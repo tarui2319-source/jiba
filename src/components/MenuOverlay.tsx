@@ -326,18 +326,17 @@ const PlacementIll = memo(() => (
 PlacementIll.displayName = 'PlacementIll';
 
 // ──────────────────────────────────────────────────────────────
-// イラスト 6 — ケースで理解するカルーセル（3事例）
+// イラスト 6 — パワーが広がる（mid_cross, 5×5）
 // ──────────────────────────────────────────────────────────────
 
-// Case 1: アンカー設置 → パワーが広がる（mid_cross, 5×5）
-const CASE1_BOARD: CellColor[][] = [
+const SPREAD_BOARD: CellColor[][] = [
   ['empty', 'empty',     'empty',     'empty',     'empty'],
   ['empty', 'empty',     'influence', 'empty',     'empty'],
   ['empty', 'influence', 'blue',      'influence', 'empty'],
   ['empty', 'empty',     'influence', 'empty',     'empty'],
   ['empty', 'empty',     'empty',     'empty',     'empty'],
 ];
-const CASE1_LABELS: (string | null)[][] = [
+const SPREAD_LABELS: (string | null)[][] = [
   [null, null, null, null, null],
   [null, null, '2',  null, null],
   [null, '2',  '⚓', '2',  null],
@@ -345,100 +344,61 @@ const CASE1_LABELS: (string | null)[][] = [
   [null, null, null, null, null],
 ];
 
-// Case 3: アンカーマスは攻められない（3×3）
-// RED パワー3 に囲まれても BLUE アンカーは守られる
-const CASE3_BOARD: CellColor[][] = [
+const PowerSpreadIll = memo(() => (
+  <View style={illS.wrap}>
+    <MiniBoardLabeled board={SPREAD_BOARD} labels={SPREAD_LABELS} cellSize={18} />
+  </View>
+));
+PowerSpreadIll.displayName = 'PowerSpreadIll';
+
+// ──────────────────────────────────────────────────────────────
+// イラスト 7 — 強いパワーが勝つ
+// ──────────────────────────────────────────────────────────────
+
+const HigherPowerIll = memo(() => (
+  <View style={illS.wrap}>
+    <View style={illS.matchupRow}>
+      <View style={[illS.matchupBox, { backgroundColor: Colors.blue }]}>
+        <Text style={illS.matchupNum}>4</Text>
+      </View>
+      <Text style={illS.matchupVsText}>vs</Text>
+      <View style={[illS.matchupBox, { backgroundColor: Colors.red }]}>
+        <Text style={illS.matchupNum}>2</Text>
+      </View>
+      <Text style={illS.matchupArrowText}>→</Text>
+      <View style={[illS.matchupBox, {
+        backgroundColor: Colors.blue,
+        borderWidth: 2,
+        borderColor: Colors.selectedBorder,
+      }]}>
+        <Text style={illS.matchupCheckText}>✓</Text>
+      </View>
+    </View>
+  </View>
+));
+HigherPowerIll.displayName = 'HigherPowerIll';
+
+// ──────────────────────────────────────────────────────────────
+// イラスト 8 — アンカーだけは別（REDパワー3に囲まれてもBLUEアンカーは守られる）
+// ──────────────────────────────────────────────────────────────
+
+const IMMUNE_BOARD: CellColor[][] = [
   ['red_inf', 'red_inf', 'red_inf'],
   ['red_inf', 'blue',    'red_inf'],
   ['red_inf', 'red_inf', 'red_inf'],
 ];
-const CASE3_LABELS: (string | null)[][] = [
+const IMMUNE_LABELS: (string | null)[][] = [
   ['3', '3', '3'],
   ['3', '⚓', '3'],
   ['3', '3', '3'],
 ];
 
-const ExampleCarousel = memo(() => {
-  const { locale } = useI18n();
-  const [caseIdx, setCaseIdx] = useState(0);
-
-  const cases = locale === 'ja'
-    ? [
-        { title: 'パワーが広がる',       cap: 'アンカーを置くと、シェイプに合わせてパワーが広がる' },
-        { title: 'パワーが高い方が勝つ', cap: 'BLUE 4 > RED 2 → そのマスはBLUEのものに！' },
-        { title: 'アンカーは守られる',   cap: 'REDに高いパワーがあっても、アンカーマスは攻められない' },
-      ]
-    : [
-        { title: 'Power Spreads',     cap: 'Placing an anchor spreads power based on the shape' },
-        { title: 'Higher Power Wins', cap: 'BLUE 4 > RED 2 → BLUE claims that cell!' },
-        { title: 'Anchor Protected',  cap: "Even with more power, RED can't attack the anchor cell" },
-      ];
-
-  const current = cases[caseIdx];
-
-  return (
-    <View style={illS.carouselWrap}>
-      {/* ── ケースナビゲーション ── */}
-      <View style={illS.caseNavRow}>
-        <TouchableOpacity
-          onPress={() => setCaseIdx(prev => Math.max(prev - 1, 0))}
-          style={[illS.caseNavArrow, caseIdx === 0 && { opacity: 0.2 }]}
-          disabled={caseIdx === 0}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={illS.caseNavArrowText}>‹</Text>
-        </TouchableOpacity>
-        <Text style={illS.caseNavTitle}>{current.title}</Text>
-        <TouchableOpacity
-          onPress={() => setCaseIdx(prev => Math.min(prev + 1, 2))}
-          style={[illS.caseNavArrow, caseIdx === 2 && { opacity: 0.2 }]}
-          disabled={caseIdx === 2}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={illS.caseNavArrowText}>›</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* ── ドット ── */}
-      <View style={{ flexDirection: 'row', gap: 5 }}>
-        {[0, 1, 2].map(i => (
-          <View key={i} style={[illS.caseDot, i === caseIdx && illS.caseDotActive]} />
-        ))}
-      </View>
-
-      {/* ── イラスト ── */}
-      {caseIdx === 0 && (
-        <MiniBoardLabeled board={CASE1_BOARD} labels={CASE1_LABELS} cellSize={14} />
-      )}
-      {caseIdx === 1 && (
-        <View style={illS.matchupRow}>
-          <View style={[illS.matchupBox, { backgroundColor: Colors.blue }]}>
-            <Text style={illS.matchupNum}>4</Text>
-          </View>
-          <Text style={illS.matchupVsText}>vs</Text>
-          <View style={[illS.matchupBox, { backgroundColor: Colors.red }]}>
-            <Text style={illS.matchupNum}>2</Text>
-          </View>
-          <Text style={illS.matchupArrowText}>→</Text>
-          <View style={[illS.matchupBox, {
-            backgroundColor: Colors.blue,
-            borderWidth: 2,
-            borderColor: Colors.selectedBorder,
-          }]}>
-            <Text style={illS.matchupCheckText}>✓</Text>
-          </View>
-        </View>
-      )}
-      {caseIdx === 2 && (
-        <MiniBoardLabeled board={CASE3_BOARD} labels={CASE3_LABELS} cellSize={22} />
-      )}
-
-      {/* ── キャプション ── */}
-      <Text style={illS.caseCaption}>{current.cap}</Text>
-    </View>
-  );
-});
-ExampleCarousel.displayName = 'ExampleCarousel';
+const AnchorImmuneIll = memo(() => (
+  <View style={illS.wrap}>
+    <MiniBoardLabeled board={IMMUNE_BOARD} labels={IMMUNE_LABELS} cellSize={24} />
+  </View>
+));
+AnchorImmuneIll.displayName = 'AnchorImmuneIll';
 
 // ──────────────────────────────────────────────────────────────
 // イラスト共通スタイル
@@ -484,16 +444,7 @@ const illS = StyleSheet.create({
   shapeCardName:       { color: Colors.textMuted, fontSize: 8 },
   shapeCardNameActive: { color: Colors.blue },
 
-  // ── Slide 6: ケースカルーセル ─────────────────────────────────
-  carouselWrap:      { alignItems: 'center', gap: 6 },
-  caseNavRow:        { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, width: '100%' },
-  caseNavArrow:      { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-  caseNavArrowText:  { color: Colors.blue, fontSize: 22, fontWeight: '700', lineHeight: 28 },
-  caseNavTitle:      { flex: 1, textAlign: 'center', color: Colors.textPrimary, fontSize: FontSize.sm, fontWeight: '800' },
-  caseDot:           { width: 6, height: 6, borderRadius: Radius.full, backgroundColor: Colors.border },
-  caseDotActive:     { width: 16, backgroundColor: Colors.blue },
-  caseCaption:       { color: Colors.textSecondary, fontSize: FontSize.xs, textAlign: 'center', paddingHorizontal: Spacing.md },
-  // Matchup (case 2)
+  // ── Slide 7: パワー比較 ───────────────────────────────────────
   matchupRow:        { flexDirection: 'row', alignItems: 'center', gap: 8 },
   matchupBox:        { width: 44, height: 44, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center' },
   matchupNum:        { color: Colors.white, fontSize: 22, fontWeight: '900' },
@@ -512,7 +463,9 @@ const ILLUSTRATIONS: React.ComponentType[] = [
   SelectShapeIll,
   InfluenceIll,
   PlacementIll,
-  ExampleCarousel,
+  PowerSpreadIll,
+  HigherPowerIll,
+  AnchorImmuneIll,
 ];
 
 const SLIDE_KEYS: Array<{ title: I18nKey; desc: I18nKey }> = [
@@ -522,6 +475,8 @@ const SLIDE_KEYS: Array<{ title: I18nKey; desc: I18nKey }> = [
   { title: 'tut_4_title', desc: 'tut_4_desc' },
   { title: 'tut_5_title', desc: 'tut_5_desc' },
   { title: 'tut_6_title', desc: 'tut_6_desc' },
+  { title: 'tut_7_title', desc: 'tut_7_desc' },
+  { title: 'tut_8_title', desc: 'tut_8_desc' },
 ];
 
 const TOTAL_SLIDES = SLIDE_KEYS.length; // 6
