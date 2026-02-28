@@ -59,6 +59,31 @@ describe('getLegalMoves', () => {
     expect(moves.length).toBe(0);
   });
 
+  test('敵の影響下にある空マスには Build できない', () => {
+    let board = createEmptyBoard(SIZE);
+    // red が (3,3) に mid_cross（上下左右 power=2）を配置
+    // → (2,3)(4,3)(3,2)(3,4) が red 支配になる
+    board = applyAction(board, { type: 'build', row: 3, col: 3, shape: 'mid_cross' }, 'red');
+    const moves = getLegalMoves(board, 'blue', SIZE);
+
+    // red 支配マスへの Build が存在しないこと
+    const enemyControlled = [[2, 3], [4, 3], [3, 2], [3, 4]];
+    for (const [r, c] of enemyControlled) {
+      expect(moves.some((m) => m.type === 'build' && m.row === r && m.col === c)).toBe(false);
+    }
+    // red アンカーのある (3,3) 自体も Build/Stack 不可
+    expect(moves.some((m) => m.row === 3 && m.col === 3)).toBe(false);
+  });
+
+  test('isLegalMove: 敵支配の空マスへの Build は不正', () => {
+    let board = createEmptyBoard(SIZE);
+    board = applyAction(board, { type: 'build', row: 3, col: 3, shape: 'mid_cross' }, 'red');
+    // (2,3) は red 支配の空マス
+    expect(isLegalMove(board, { type: 'build', row: 2, col: 3, shape: 'weak' }, 'blue', SIZE)).toBe(false);
+    // 中立マスは依然 Build 可
+    expect(isLegalMove(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'blue', SIZE)).toBe(true);
+  });
+
   test('自分のマスと相手のマスが混在: 自分のマスのみ Stack できる', () => {
     let board = createEmptyBoard(SIZE);
     board = applyAction(board, { type: 'build', row: 0, col: 0, shape: 'weak' }, 'blue');
