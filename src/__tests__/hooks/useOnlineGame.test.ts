@@ -5,7 +5,7 @@
  * moveService / roomService をモックしてオンラインゲームロジックを検証する。
  */
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { useOnlineGame } from '../../hooks/useOnlineGame';
 import { useGameState } from '../../hooks/useGameState';
 import {

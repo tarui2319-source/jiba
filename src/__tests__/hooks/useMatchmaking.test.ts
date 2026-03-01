@@ -5,7 +5,7 @@
  * roomService をモックして状態機械を検証する。
  */
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { useMatchmaking } from '../../hooks/useMatchmaking';
 import {
   findOrCreateRoom,

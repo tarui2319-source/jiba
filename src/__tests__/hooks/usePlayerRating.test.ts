@@ -5,7 +5,7 @@
  * ratingService / supabaseClient をモックして React フックをテストする。
  */
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { usePlayerRating } from '../../hooks/usePlayerRating';
 import { fetchRating, upsertRating } from '../../network/ratingService';
 import { GameResult } from '../../engine/types';

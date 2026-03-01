@@ -5,7 +5,7 @@
  * SURRENDER アクションの検証。
  */
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { useGameState } from '../../hooks/useGameState';
 
 describe('useGameState', () => {
