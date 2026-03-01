@@ -103,7 +103,7 @@ export function usePlayerRating({
       });
 
     return () => { cancelled = true; };
-  }, [isOnlineGame]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOnlineGame]);
 
   // Effect 2: ゲーム結果確定時に段位を更新
   useEffect(() => {
