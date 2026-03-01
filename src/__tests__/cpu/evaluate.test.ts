@@ -81,7 +81,7 @@ describe('scoreMove', () => {
     const board = createEmptyBoard(SIZE);
     const action = { type: 'build' as const, row: 3, col: 3, shape: 'weak' as const };
     const blueScore = scoreMove(board, action, 'first', SIZE);
-    const redPerspective = scoreMove(board, action, 'first', SIZE, true);
+    scoreMove(board, action, 'first', SIZE, true);
     // blue が打った場合、blue 視点でプラス
     expect(blueScore).toBeGreaterThan(0);
     // ゼロサムなので red 視点では同じ手を red が打った場合にプラスになる

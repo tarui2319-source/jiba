@@ -37,11 +37,6 @@ const blueWin: GameResult = {
   firstPower: 100, secondPower: 60,
 };
 
-const redWin: GameResult = {
-  winner: 'second', firstCount: 15, secondCount: 35, neutralCount: 5,
-  firstPower: 50, secondPower: 120,
-};
-
 const draw: GameResult = {
   winner: 'draw', firstCount: 25, secondCount: 25, neutralCount: 5,
   firstPower: 80, secondPower: 80,

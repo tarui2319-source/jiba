@@ -28,7 +28,7 @@
 ## HOW
 - build: eas build --profile development
 - test: npm test
-- lint: npx eslint src/ --ext .ts,.tsx
+- lint: npx eslint src/
 - 本番build: eas build --profile production
 - 検証順序: lint → test → Security Gate
 - エンジンテスト: npm test -- --testPathPattern=engine（影響力計算の単体テスト）

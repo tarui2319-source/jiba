@@ -43,7 +43,6 @@ export const ResultOverlay = React.memo<ResultOverlayProps>(({
   // ── 表示テキスト ────────────────────────────────────
   const isWinnerBlue  = result.winner === 'first';
   const isWinnerRed   = result.winner === 'second';
-  const isDraw        = result.winner === 'draw';
   const isSurrender   = !!surrenderedBy;
 
   const winnerColor = isWinnerBlue ? Colors.blue

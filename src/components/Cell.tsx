@@ -52,7 +52,9 @@ export const Cell = React.memo<CellProps>(({
 
   // ── アンカー配置アニメーション ─────────────────────────
   const prevAnchorCount = useRef(cellData.anchors.length);
+  // eslint-disable-next-line react-hooks/refs
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  // eslint-disable-next-line react-hooks/refs
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {

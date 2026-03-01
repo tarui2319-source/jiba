@@ -62,7 +62,6 @@ function makeDelta(
     after.rank > before.rank ? 'up' :
     after.rank < before.rank ? 'down' :
     'none';
-  const pointsDelta = after.points - before.points + (after.rank - before.rank) * 0;
   // ランク変化がある場合は raw delta を返す（表示用）
   return {
     before,
