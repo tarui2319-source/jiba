@@ -199,43 +199,83 @@ Available in Japanese and English.
 
 ## スクリーンショット撮影ガイド
 
-### 必要なシーン（優先順）
+### 必要サイズ
 
-| # | シーン | 撮影タイミング |
-|---|--------|----------------|
-| 1 | ゲーム中盤面 | 両者の陣地が色分けされた状態 |
-| 2 | シェイプ選択 | シェイプパネルが開いている状態 |
-| 3 | ホーム画面 | モード選択画面 |
-| 4 | 勝利結果 | 勝敗判定後の結果画面 |
-| 5 | チュートリアル | ルール説明スライド |
+#### App Store (iOS)
+| デバイス | サイズ | 要否 |
+|---------|--------|------|
+| iPhone 6.9インチ (iPhone 16 Pro Max) | 1320×2868 px | ★必須 |
+| iPhone 6.7インチ (iPhone 15 Plus/Pro Max) | 1290×2796 px | ★必須 |
+| iPhone 6.5インチ (iPhone 11 Pro Max / XS Max) | 1242×2688 px | ★必須 |
+| iPad Pro 13インチ | 2064×2752 px | 任意 |
 
-### App Store 必要サイズ
-- iPhone 6.7インチ（1290×2796px）★必須
-- iPhone 6.5インチ（1242×2688px）★必須
-- iPad Pro 12.9インチ（2048×2732px）★任意
+枚数: 最大10枚（最低1枚）。最初の3枚が検索結果で表示されるため最重要。
 
-### Play Store 必要サイズ
-- スマートフォン縦（1080×1920px 以上）★必須
-- 最低2枚〜最大8枚
+#### Google Play (Android)
+| 種別 | サイズ | 要否 |
+|------|--------|------|
+| スマートフォン縦 | 1080×1920 px 以上（9:16） | ★必須 2〜8枚 |
+| タブレット 7インチ | 1080×1920 px 以上 | 任意 |
 
-### Expo での撮影方法
-```bash
-# iOS Simulator でスクリーンショット
-npx expo start
-# → Simulator起動後、Cmd+S でスクリーンショット保存
+---
 
-# Android Emulator
-# → Emulator のカメラアイコンからキャプチャ
-```
+### 撮影シーン（優先順）
 
-### スクリーンショット保存先
+| # | ファイル名 | シーン | 撮影手順 |
+|---|-----------|--------|---------|
+| 1 | `01_gameplay` | **ゲーム中盤（最重要）** | CPU対戦「ふつう」で10手前後進める。先攻・後攻の陣地が交差して色分けが鮮やかな局面でキャプチャ |
+| 2 | `02_shape_select` | **シェイプ選択** | マスをタップしてシェイプパネルが開いた状態。7種類が全部見える状態 |
+| 3 | `03_setup` | **モード選択** | SetupOverlay が表示されている状態。CPU対戦・2人対戦・オンラインの3モードが見える |
+| 4 | `04_result_win` | **勝利結果** | CPU対戦に勝利して ResultOverlay が表示された状態。段位アップのバッジが出ていると理想的 |
+| 5 | `05_tutorial` | **チュートリアル** | スライド4枚目（パワーの広がり説明）。図解が最もわかりやすいスライドを選ぶ |
+
+---
+
+### 保存先ディレクトリ
+
 ```
 docs/screenshots/
-  ios_6.7_01_gameplay.png
-  ios_6.7_02_shape_select.png
-  ios_6.7_03_home.png
-  ios_6.7_04_result.png
-  ios_6.7_05_tutorial.png
-  android_01_gameplay.png
-  ...
+  ios/
+    ios_6.9_01_gameplay.png
+    ios_6.9_02_shape_select.png
+    ios_6.9_03_setup.png
+    ios_6.9_04_result_win.png
+    ios_6.9_05_tutorial.png
+    ios_6.7_01_gameplay.png   ← 6.7 / 6.5 も同様
+    ...
+  android/
+    android_01_gameplay.png
+    android_02_shape_select.png
+    android_03_setup.png
+    android_04_result_win.png
+    android_05_tutorial.png
 ```
+
+---
+
+### 撮影手順（Expo）
+
+```bash
+# 1. 開発サーバー起動
+npx expo start
+
+# 2. iOS Simulator（推奨: iPhone 16 Pro Max）
+#    Xcode → Simulator → Cmd+S でスクリーンショット保存
+
+# 3. Android Emulator（推奨: Pixel 8 Pro）
+#    Android Studio → Emulator → カメラアイコン or Ctrl+S
+
+# 4. EAS Build でリリースビルドを使う場合（本番品質）
+eas build --profile preview --platform ios
+```
+
+---
+
+### チェックリスト
+
+- [ ] iOS 6.9インチ 5枚撮影
+- [ ] iOS 6.7インチ 5枚撮影
+- [ ] iOS 6.5インチ 5枚撮影
+- [ ] Android スマートフォン 5枚撮影
+- [ ] App Store Connect にアップロード
+- [ ] Google Play Console にアップロード
