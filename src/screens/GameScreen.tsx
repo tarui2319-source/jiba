@@ -45,7 +45,7 @@ import { UsernameModal } from '../components/UsernameModal';
 // expo-haptics は利用可能な場合のみ使用（Web では無視）
 let Haptics: { impactAsync: (style: string) => Promise<void>; notificationAsync: (type: string) => Promise<void> } | null = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   Haptics = require('expo-haptics');
 } catch {
   // Web 環境など非対応の場合は無効化
@@ -225,7 +225,7 @@ export function GameScreen() {
         Haptics?.impactAsync('medium').catch(() => {});
       }
     }
-  }, [isWarning, isPlaying, seconds, gameMode, turnState.currentPlayer, isMyTurn]);
+  }, [isWarning, isPlaying, seconds, gameMode, turnState.currentPlayer, isMyTurn, cpuSide]);
 
   // ──────────────────────────────────────────────────────────────────
   // セル選択
@@ -244,7 +244,7 @@ export function GameScreen() {
     setSelectedCell((prev) =>
       prev?.row === row && prev?.col === col ? null : { row, col },
     );
-  }, [isPlaying, isCpuThinking, gameMode, turnState.currentPlayer, isMyTurn, influence, board]);
+  }, [isPlaying, isCpuThinking, gameMode, turnState.currentPlayer, cpuSide, isMyTurn, influence, board]);
 
   // ──────────────────────────────────────────────────────────────────
   // アクション確定

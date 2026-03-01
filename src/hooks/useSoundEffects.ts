@@ -13,7 +13,7 @@ import { Platform } from 'react-native';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let Haptics: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   Haptics = require('expo-haptics');
 } catch {}
 
