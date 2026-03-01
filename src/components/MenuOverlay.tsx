@@ -481,7 +481,7 @@ const SLIDE_KEYS: Array<{ title: I18nKey; desc: I18nKey }> = [
   { title: 'tut_8_title', desc: 'tut_8_desc' },
 ];
 
-const TOTAL_SLIDES = SLIDE_KEYS.length; // 6
+const TOTAL_SLIDES = SLIDE_KEYS.length; // 8
 
 // ──────────────────────────────────────────────────────────────
 // メインコンポーネント

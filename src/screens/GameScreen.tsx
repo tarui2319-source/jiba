@@ -15,6 +15,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { ShapeKind, Player } from '../engine/types';
+import { getRandomMove } from '../engine/randomMove';
 import { RatingState, DEFAULT_RATING } from '../engine/rankEngine';
 import { fetchRating } from '../network/ratingService';
 import { MY_PLAYER_ID } from '../network/supabaseClient';
@@ -192,13 +193,15 @@ export function GameScreen() {
     // オンライン時: 相手のターンはスキップ
     if (!isMyTurn) return;
     if (isOnlineGame) {
-      execMove({ type: 'build', row: 0, col: 0, shape: 'weak' }); // ランダム手（簡易）
+      // オンライン: 合法手からランダムに選んで execMove（サーバー同期）
+      const move = getRandomMove(board, turnState.currentPlayer, size);
+      if (move) execMove(move);
     } else {
       applyRandomMove();
     }
     setSelectedCell(null);
     setSelectedShape(null);
-  }, [isPlaying, gameMode, turnState.currentPlayer, isMyTurn, isOnlineGame, execMove, applyRandomMove]);
+  }, [isPlaying, gameMode, turnState.currentPlayer, cpuSide, isMyTurn, isOnlineGame, board, size, execMove, applyRandomMove]);
 
   // セットアップ中はタイマーを停止
   const { seconds, isWarning, reset: resetTimer } = useTimer(
