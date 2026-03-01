@@ -14,7 +14,7 @@ import {
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
-import { ShapeKind } from '../engine/types';
+import { ShapeKind, Player } from '../engine/types';
 import { RatingState, DEFAULT_RATING } from '../engine/rankEngine';
 import { fetchRating } from '../network/ratingService';
 import { MY_PLAYER_ID } from '../network/supabaseClient';
@@ -50,8 +50,9 @@ try {
   // Web 環境など非対応の場合は無効化
 }
 
-/** CPU は常に SECOND を担当 */
-const CPU_SIDE = 'second' as const;
+function randomPlayer(): Player {
+  return Math.random() < 0.5 ? 'first' : 'second';
+}
 
 export function GameScreen() {
   const { t } = useI18n();
@@ -70,6 +71,8 @@ export function GameScreen() {
   const [gameMode, setGameMode] = useState<GameMode>('local');
   const [cpuDifficulty, setCpuDifficulty] = useState<CpuDifficulty>(2);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
+  // CPU対戦: ゲーム開始のたびにコイントスで先後を決定
+  const [cpuSide, setCpuSide] = useState<Player>('second');
 
   // ──────────────────────────────────────────────────────────────────
   // ユーザーネームモーダル
@@ -163,7 +166,7 @@ export function GameScreen() {
   const { isCpuThinking } = useCpuOpponent({
     gameStateReturn,
     isCpuMode: gameMode === 'cpu',
-    cpuSide: CPU_SIDE,
+    cpuSide: cpuSide,
     difficulty: cpuDifficulty,
   });
 
@@ -185,7 +188,7 @@ export function GameScreen() {
   const handleTimeout = useCallback(() => {
     if (!isPlaying) return;
     // CPU のターン中はタイムアウトをスキップ
-    if (gameMode === 'cpu' && turnState.currentPlayer === CPU_SIDE) return;
+    if (gameMode === 'cpu' && turnState.currentPlayer === cpuSide) return;
     // オンライン時: 相手のターンはスキップ
     if (!isMyTurn) return;
     if (isOnlineGame) {
@@ -215,7 +218,7 @@ export function GameScreen() {
   // 残り5秒で振動（人間のターンのみ）
   useEffect(() => {
     if (isWarning && isPlaying && seconds === 5 && isMyTurn) {
-      if (gameMode !== 'cpu' || turnState.currentPlayer !== CPU_SIDE) {
+      if (gameMode !== 'cpu' || turnState.currentPlayer !== cpuSide) {
         Haptics?.impactAsync('medium').catch(() => {});
       }
     }
@@ -228,7 +231,7 @@ export function GameScreen() {
   const handleCellPress = useCallback((row: number, col: number) => {
     if (!isPlaying || isCpuThinking) return;
     // CPU のターン中は人間が操作できない
-    if (gameMode === 'cpu' && turnState.currentPlayer === CPU_SIDE) return;
+    if (gameMode === 'cpu' && turnState.currentPlayer === cpuSide) return;
     // オンライン時: 相手のターン中は操作不可
     if (!isMyTurn) return;
     // 敵陣（相手が支配しているセル）は選択不可
@@ -274,6 +277,7 @@ export function GameScreen() {
       // オンライン: マッチング開始（デフォルトモードでマッチング）
       startMatchmaking(DEFAULT_MODE);
     } else {
+      if (gameMode === 'cpu') setCpuSide(randomPlayer());
       setSetupVisible(false);
       resetGame();
     }
