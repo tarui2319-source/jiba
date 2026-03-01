@@ -2,10 +2,15 @@
  * JIBA — Supabase クライアント
  * シングルトン。アプリ全体で 1 つの WebSocket 接続を共有する。
  * ネットワーク分離ルール: このファイルのみが @supabase/supabase-js を import 可能。
+ *
+ * セキュリティ設計:
+ *   - Supabase Anonymous Auth を使用して auth.uid() を player_id とする
+ *   - persistSession: true でセッションを localStorage に保持
+ *   - initPlayer() を App.tsx 起動時に一度だけ呼び出すこと
+ *   - MY_PLAYER_ID は initPlayer() 完了後に auth.uid() がセットされる
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { v4 as uuidv4 } from 'uuid';
 
 const SUPABASE_URL  = process.env.EXPO_PUBLIC_SUPABASE_URL  ?? '';
 const SUPABASE_AKEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -20,28 +25,72 @@ export function getSupabaseClient(): SupabaseClient {
   if (!_client) {
     _client = createClient(SUPABASE_URL, SUPABASE_AKEY, {
       realtime: { params: { eventsPerSecond: 10 } },
-      auth: { persistSession: false },
+      // persistSession: true でセッションを localStorage に保持（web / native 両対応）
+      auth: { persistSession: true },
     });
   }
   return _client;
 }
 
 // ──────────────────────────────────────────────────────────────
-// 匿名プレイヤーID
-// localStorage に永続化（同じブラウザなら段位を継続）
-// localStorage が使えない環境（native など）はセッション単位 UUID にフォールバック
+// 匿名プレイヤーID（= auth.uid()）
+// initPlayer() が完了するまで空文字列。
+// ES モジュールの live binding により、initPlayer() 完了後に
+// 他モジュールから読み取ると更新済みの値が得られる。
 // ──────────────────────────────────────────────────────────────
 
-export const MY_PLAYER_ID: string = (() => {
-  const KEY = 'jiba_player_id';
+export let MY_PLAYER_ID = '';
+
+/**
+ * 匿名認証を初期化し、MY_PLAYER_ID を auth.uid() にセットする。
+ * App.tsx のレンダリング前に一度だけ呼び出すこと。
+ *
+ * - 既存セッションがあればそれを再利用（段位データが継続される）
+ * - セッションがなければ signInAnonymously() で新規匿名ユーザーを作成
+ * - Supabase が未設定 / オフラインの場合はフォールバック UUID を使用
+ */
+export async function initPlayer(): Promise<void> {
+  const sb = getSupabaseClient();
+
+  // 既存セッションを確認（アプリ再起動後の継続）
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user?.id) {
+    MY_PLAYER_ID = session.user.id;
+    return;
+  }
+
+  // 新規匿名サインイン
+  const { data, error } = await sb.auth.signInAnonymously();
+  if (error || !data.user) {
+    // フォールバック: Supabase 未設定 / オフライン環境向け（開発時）
+    MY_PLAYER_ID = _generateFallbackId();
+    return;
+  }
+  MY_PLAYER_ID = data.user.id;
+}
+
+/** Supabase が使えない場合のフォールバック ID（セッション単位） */
+function _generateFallbackId(): string {
+  const KEY = 'jiba_player_id_fallback';
   try {
     const stored = localStorage.getItem(KEY);
     if (stored) return stored;
-    const id = uuidv4();
+    const id = _uuid();
     localStorage.setItem(KEY, id);
     return id;
   } catch {
-    // native / SSR など localStorage が存在しない環境
-    return uuidv4();
+    return _uuid();
   }
-})();
+}
+
+/** crypto.randomUUID が使える場合は使う（React Native では react-native-get-random-values で polyfill） */
+function _uuid(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // RFC4122 v4 フォールバック
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
