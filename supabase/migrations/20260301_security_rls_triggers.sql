@@ -8,6 +8,11 @@
 --     (Dashboard > Authentication > Providers > Anonymous Sign-ins: Enabled)
 --   - Realtime で RLS を有効にするには:
 --     Dashboard > Realtime > Configuration > enable_authorization_checks: true
+--
+-- 型キャスト方針:
+--   rooms.id が uuid 型、moves.room_id / player_id が text 型など
+--   列の型が混在するため、比較はすべて ::text にキャストして統一する。
+
 -- ────────────────────────────────────────────────────────────────
 -- 1. moves テーブル: CHECK 制約追加
 -- ────────────────────────────────────────────────────────────────
@@ -38,6 +43,7 @@ ALTER TABLE moves ADD CONSTRAINT moves_col_check
 -- ────────────────────────────────────────────────────────────────
 -- 2. moves バリデーショントリガー
 --    player_id が該当ルームの参加者であること、ロール一致を強制
+--    比較はすべて ::text にキャストして型差異を吸収する
 -- ────────────────────────────────────────────────────────────────
 
 CREATE OR REPLACE FUNCTION validate_move_insert()
@@ -45,11 +51,10 @@ RETURNS TRIGGER AS $$
 DECLARE
   room_record RECORD;
 BEGIN
-  -- ルームの存在と状態を確認
-  SELECT first_id, second_id, status
+  SELECT first_id::text, second_id::text, status
   INTO room_record
   FROM rooms
-  WHERE id = NEW.room_id;
+  WHERE id::text = NEW.room_id::text;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Room not found: %', NEW.room_id;
@@ -59,18 +64,16 @@ BEGIN
     RAISE EXCEPTION 'Room is not in playing status (current: %)', room_record.status;
   END IF;
 
-  -- player_id がルーム参加者であることを確認
-  IF NEW.player_id != room_record.first_id
-     AND NEW.player_id != room_record.second_id THEN
+  IF NEW.player_id::text != room_record.first_id::text
+     AND NEW.player_id::text != room_record.second_id::text THEN
     RAISE EXCEPTION 'Player % is not a participant of room %', NEW.player_id, NEW.room_id;
   END IF;
 
-  -- player ロールと player_id の整合性を確認
-  IF NEW.player = 'first' AND NEW.player_id != room_record.first_id THEN
+  IF NEW.player = 'first' AND NEW.player_id::text != room_record.first_id::text THEN
     RAISE EXCEPTION 'Role mismatch: player=first but player_id != first_id';
   END IF;
 
-  IF NEW.player = 'second' AND NEW.player_id != room_record.second_id THEN
+  IF NEW.player = 'second' AND NEW.player_id::text != room_record.second_id::text THEN
     RAISE EXCEPTION 'Role mismatch: player=second but player_id != second_id';
   END IF;
 
@@ -96,7 +99,6 @@ ALTER TABLE player_ratings ENABLE ROW LEVEL SECURITY;
 -- 4. rooms RLS ポリシー
 -- ────────────────────────────────────────────────────────────────
 
--- 既存ポリシーをクリア
 DROP POLICY IF EXISTS "rooms_select_all"           ON rooms;
 DROP POLICY IF EXISTS "rooms_insert_as_second"     ON rooms;
 DROP POLICY IF EXISTS "rooms_update_join_or_close" ON rooms;
@@ -110,25 +112,25 @@ CREATE POLICY "rooms_select_all"
 -- 作成: second_id が自分のみ INSERT 可
 CREATE POLICY "rooms_insert_as_second"
   ON rooms FOR INSERT
-  WITH CHECK (second_id = auth.uid());
+  WITH CHECK (second_id::text = auth.uid()::text);
 
 -- 更新: 参加者が更新可 OR waiting ルームへの新規参加（first_id が NULL の場合）
 CREATE POLICY "rooms_update_join_or_close"
   ON rooms FOR UPDATE
   USING (
-    second_id = auth.uid()
-    OR first_id  = auth.uid()
+    second_id::text = auth.uid()::text
+    OR first_id::text  = auth.uid()::text
     OR (first_id IS NULL AND status = 'waiting')
   )
   WITH CHECK (
-    second_id = auth.uid()
-    OR first_id = auth.uid()
+    second_id::text = auth.uid()::text
+    OR first_id::text = auth.uid()::text
   );
 
 -- 削除: 自分が second_id かつ waiting 状態のルームのみ削除可
 CREATE POLICY "rooms_delete_own_waiting"
   ON rooms FOR DELETE
-  USING (second_id = auth.uid() AND status = 'waiting');
+  USING (second_id::text = auth.uid()::text AND status = 'waiting');
 
 -- ────────────────────────────────────────────────────────────────
 -- 5. moves RLS ポリシー
@@ -143,8 +145,8 @@ CREATE POLICY "moves_select_participants"
   USING (
     EXISTS (
       SELECT 1 FROM rooms r
-      WHERE r.id = room_id
-        AND (r.first_id = auth.uid() OR r.second_id = auth.uid())
+      WHERE r.id::text = room_id::text
+        AND (r.first_id::text = auth.uid()::text OR r.second_id::text = auth.uid()::text)
     )
   );
 
@@ -152,12 +154,12 @@ CREATE POLICY "moves_select_participants"
 CREATE POLICY "moves_insert_participant"
   ON moves FOR INSERT
   WITH CHECK (
-    player_id = auth.uid()
+    player_id::text = auth.uid()::text
     AND EXISTS (
       SELECT 1 FROM rooms r
-      WHERE r.id = room_id
+      WHERE r.id::text = room_id::text
         AND r.status = 'playing'
-        AND (r.first_id = auth.uid() OR r.second_id = auth.uid())
+        AND (r.first_id::text = auth.uid()::text OR r.second_id::text = auth.uid()::text)
     )
   );
 
@@ -172,18 +174,18 @@ DROP POLICY IF EXISTS "ratings_update_self" ON player_ratings;
 -- 参照: 自分の段位のみ読み取り可
 CREATE POLICY "ratings_select_self"
   ON player_ratings FOR SELECT
-  USING (player_id = auth.uid());
+  USING (player_id::text = auth.uid()::text);
 
 -- 挿入: 自分の player_id のみ INSERT 可
 CREATE POLICY "ratings_insert_self"
   ON player_ratings FOR INSERT
-  WITH CHECK (player_id = auth.uid());
+  WITH CHECK (player_id::text = auth.uid()::text);
 
 -- 更新: 自分の行のみ UPDATE 可
 CREATE POLICY "ratings_update_self"
   ON player_ratings FOR UPDATE
-  USING (player_id = auth.uid())
-  WITH CHECK (player_id = auth.uid());
+  USING (player_id::text = auth.uid()::text)
+  WITH CHECK (player_id::text = auth.uid()::text);
 
 -- ────────────────────────────────────────────────────────────────
 -- 7. 検証クエリ（確認用・実行不要）
