@@ -5,7 +5,7 @@
  * ratingService / supabaseClient をモックして React フックをテストする。
  */
 
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePlayerRating } from '../../hooks/usePlayerRating';
 import { fetchRating, upsertRating } from '../../network/ratingService';
 import { GameResult } from '../../engine/types';
@@ -61,28 +61,27 @@ describe('usePlayerRating', () => {
     it('isOnlineGame=true でマウント時に fetchRating が呼ばれる', async () => {
       mockFetchRating.mockResolvedValue(existingRow);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePlayerRating({ gameResult: null, myPlayer: 'first', isOnlineGame: true }),
       );
 
       expect(result.current.isLoading).toBe(true);
-      await waitForNextUpdate();
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(mockFetchRating).toHaveBeenCalledWith('test-player-uuid');
       expect(result.current.currentRating).toEqual({ rank: 2, points: 40 });
-      expect(result.current.isLoading).toBe(false);
     });
 
     it('勝利後に upsertRating が呼ばれ currentRating が更新される', async () => {
       mockFetchRating.mockResolvedValue(existingRow);
 
-      const { result, waitForNextUpdate, rerender } = renderHook(
+      const { result, rerender } = renderHook(
         ({ gameResult, myPlayer }: { gameResult: GameResult | null; myPlayer: 'first' | 'second' }) =>
           usePlayerRating({ gameResult, myPlayer, isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null, myPlayer: 'first' as const } },
       );
 
-      await waitForNextUpdate(); // fetchRating 完了
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       // 勝利結果を渡す
       act(() => {
@@ -106,13 +105,13 @@ describe('usePlayerRating', () => {
     it('resultAppliedRef: gameResult が同じ値のままでも二重に upsert しない', async () => {
       mockFetchRating.mockResolvedValue(existingRow);
 
-      const { rerender, waitForNextUpdate } = renderHook(
+      const { rerender } = renderHook(
         ({ gameResult }: { gameResult: GameResult | null }) =>
           usePlayerRating({ gameResult, myPlayer: 'first', isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null } },
       );
 
-      await waitForNextUpdate();
+      await waitFor(() => expect(mockFetchRating).toHaveBeenCalled());
 
       // 同じ gameResult を 2 回渡す
       act(() => { rerender({ gameResult: blueWin }); });
@@ -141,13 +140,13 @@ describe('usePlayerRating', () => {
       mockFetchRating.mockResolvedValue(existingRow);
       mockUpsertRating.mockRejectedValue(new Error('network error'));
 
-      const { rerender, waitForNextUpdate } = renderHook(
+      const { rerender } = renderHook(
         ({ gameResult }: { gameResult: GameResult | null }) =>
           usePlayerRating({ gameResult, myPlayer: 'first', isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null } },
       );
 
-      await waitForNextUpdate();
+      await waitFor(() => expect(mockFetchRating).toHaveBeenCalled());
 
       // エラーが throw されないこと
       await expect(async () => {
@@ -159,14 +158,13 @@ describe('usePlayerRating', () => {
     it('fetchRating 失敗時はデフォルト値（1段 0P）にフォールバック', async () => {
       mockFetchRating.mockRejectedValue(new Error('connection error'));
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePlayerRating({ gameResult: null, myPlayer: 'first', isOnlineGame: true }),
       );
 
-      await waitForNextUpdate();
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(result.current.currentRating).toEqual({ rank: 1, points: 0 });
-      expect(result.current.isLoading).toBe(false);
     });
   });
 
@@ -174,11 +172,11 @@ describe('usePlayerRating', () => {
     it('未登録プレイヤー（fetchRating=null）は DEFAULT_RATING を使う', async () => {
       mockFetchRating.mockResolvedValue(null);
 
-      const { result, waitForNextUpdate } = renderHook(() =>
+      const { result } = renderHook(() =>
         usePlayerRating({ gameResult: null, myPlayer: 'second', isOnlineGame: true }),
       );
 
-      await waitForNextUpdate();
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
 
       expect(result.current.currentRating).toEqual({ rank: 1, points: 0 });
     });
@@ -186,13 +184,13 @@ describe('usePlayerRating', () => {
     it('gameResult が null に戻ると ratingDelta がリセットされる', async () => {
       mockFetchRating.mockResolvedValue(existingRow);
 
-      const { result, rerender, waitForNextUpdate } = renderHook(
+      const { result, rerender } = renderHook(
         ({ gameResult }: { gameResult: GameResult | null }) =>
           usePlayerRating({ gameResult, myPlayer: 'first', isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null } },
       );
 
-      await waitForNextUpdate();
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
       act(() => { rerender({ gameResult: blueWin }); });
       await new Promise(r => setTimeout(r, 0));
       expect(result.current.ratingDelta).not.toBeNull();
@@ -205,13 +203,13 @@ describe('usePlayerRating', () => {
     it('引き分けは draws をインクリメントし点数変化なし', async () => {
       mockFetchRating.mockResolvedValue(existingRow);
 
-      const { rerender, waitForNextUpdate } = renderHook(
+      const { rerender } = renderHook(
         ({ gameResult }: { gameResult: GameResult | null }) =>
           usePlayerRating({ gameResult, myPlayer: 'first', isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null } },
       );
 
-      await waitForNextUpdate();
+      await waitFor(() => expect(mockFetchRating).toHaveBeenCalled());
       act(() => { rerender({ gameResult: draw }); });
       await new Promise(r => setTimeout(r, 0));
 
@@ -225,13 +223,13 @@ describe('usePlayerRating', () => {
     it('myPlayer=red で相手（blue）が勝利 → losses', async () => {
       mockFetchRating.mockResolvedValue(existingRow);
 
-      const { rerender, waitForNextUpdate } = renderHook(
+      const { rerender } = renderHook(
         ({ gameResult }: { gameResult: GameResult | null }) =>
           usePlayerRating({ gameResult, myPlayer: 'second', isOnlineGame: true }),
         { initialProps: { gameResult: null as GameResult | null } },
       );
 
-      await waitForNextUpdate();
+      await waitFor(() => expect(mockFetchRating).toHaveBeenCalled());
       act(() => { rerender({ gameResult: blueWin }); }); // red は負け
       await new Promise(r => setTimeout(r, 0));
 
