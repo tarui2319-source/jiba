@@ -76,6 +76,8 @@ export function GameScreen() {
   // ──────────────────────────────────────────────────────────────────
 
   const [usernameModalVisible, setUsernameModalVisible] = useState(false);
+  // 初回ユーザーネーム設定後にチュートリアルを自動表示するフラグ
+  const [pendingTutorial, setPendingTutorial] = useState(false);
 
   // 初回起動時（username 未設定）はモーダルを表示
   useEffect(() => {
@@ -84,9 +86,11 @@ export function GameScreen() {
   }, []);
 
   const handleUsernameSave = useCallback(async (name: string) => {
+    const isFirstTime = username === null;
     await saveUsername(name);
     setUsernameModalVisible(false);
-  }, [saveUsername]);
+    if (isFirstTime) setPendingTutorial(true);
+  }, [saveUsername, username]);
 
   const handleUsernameEdit = useCallback(() => {
     setUsernameModalVisible(true);
@@ -473,6 +477,8 @@ export function GameScreen() {
             rating={titleRating}
             username={username}
             onEditUsername={handleUsernameEdit}
+            openMenuWithTutorial={pendingTutorial}
+            onMenuWithTutorialOpened={() => setPendingTutorial(false)}
           />
         )}
 

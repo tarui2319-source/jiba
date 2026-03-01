@@ -34,6 +34,8 @@ export interface MenuOverlayProps {
   visible: boolean;
   onClose: () => void;
   onEditUsername: () => void;
+  /** true のとき、メニューが開いた瞬間にチュートリアルを自動表示する */
+  startWithTutorial?: boolean;
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -485,18 +487,21 @@ const TOTAL_SLIDES = SLIDE_KEYS.length; // 6
 // メインコンポーネント
 // ──────────────────────────────────────────────────────────────
 
-export const MenuOverlay = memo<MenuOverlayProps>(({ visible, onClose, onEditUsername }) => {
+export const MenuOverlay = memo<MenuOverlayProps>(({ visible, onClose, onEditUsername, startWithTutorial }) => {
   const { t, locale, setLocale } = useI18n();
   const [showTutorial, setShowTutorial] = useState(false);
   const [slide, setSlide] = useState(0);
 
-  // 閉じた時にメニューリストへリセット
+  // 表示状態変化でリセット／初回チュートリアル自動表示
   useEffect(() => {
     if (!visible) {
       setShowTutorial(false);
       setSlide(0);
+    } else if (startWithTutorial) {
+      setShowTutorial(true);
+      setSlide(0);
     }
-  }, [visible]);
+  }, [visible, startWithTutorial]);
 
   // ── スワイプジェスチャー ────────────────────────────────
   const pan = useRef(

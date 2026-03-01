@@ -5,7 +5,7 @@
  * i18n: 日英切替対応（言語設定はMenuOverlay内に移動）
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, FontSize, Spacing, Radius } from '../constants/theme';
 import { CpuDifficulty } from '../constants/cpuConfig';
@@ -27,6 +27,10 @@ interface SetupOverlayProps {
   username?: string | null;
   /** ユーザーネーム編集コールバック（UsernameModalを開く） */
   onEditUsername?: () => void;
+  /** true のとき、メニューをチュートリアル表示で自動オープンする（初回起動時） */
+  openMenuWithTutorial?: boolean;
+  /** メニューが自動オープンされた直後に呼ばれるコールバック */
+  onMenuWithTutorialOpened?: () => void;
 }
 
 const DIFFICULTIES: CpuDifficulty[] = [1, 2, 3, 4];
@@ -39,10 +43,21 @@ const MODE_EMOJIS: Record<GameMode, string> = {
 
 export const SetupOverlay = React.memo<SetupOverlayProps>(({
   gameMode, cpuDifficulty, onSetGameMode, onSetDifficulty, onStart, rating,
-  username, onEditUsername,
+  username, onEditUsername, openMenuWithTutorial, onMenuWithTutorialOpened,
 }) => {
   const { t } = useI18n();
   const [showMenu, setShowMenu] = useState(false);
+  const [autoTutorial, setAutoTutorial] = useState(false);
+
+  // 初回チュートリアル: メニューをチュートリアル表示で自動オープン
+  useEffect(() => {
+    if (openMenuWithTutorial) {
+      setShowMenu(true);
+      setAutoTutorial(true);
+      onMenuWithTutorialOpened?.();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openMenuWithTutorial]);
 
   const startLabel = gameMode === 'online' ? t('matchmaking_start') : t('start');
 
@@ -66,8 +81,9 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
         {/* ── メニューオーバーレイ ─────────────────────────── */}
         <MenuOverlay
           visible={showMenu}
-          onClose={() => setShowMenu(false)}
+          onClose={() => { setShowMenu(false); setAutoTutorial(false); }}
           onEditUsername={onEditUsername ?? (() => {})}
+          startWithTutorial={autoTutorial}
         />
 
         {/* ── タイトルヘッダー ─────────────────────────── */}
