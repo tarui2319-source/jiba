@@ -237,13 +237,14 @@ export function GameScreen() {
     if (gameMode === 'cpu' && turnState.currentPlayer === cpuSide) return;
     // オンライン時: 相手のターン中は操作不可
     if (!isMyTurn) return;
-    // 敵陣（相手が支配しているセル）は選択不可
+    // 敵陣（相手が支配しているセル、または相手の駒があるセル）は選択不可
     const opponent = turnState.currentPlayer === 'first' ? 'second' : 'first';
     if (influence[row][col].controller === opponent) return;
+    if (board[row][col].anchors.some(a => a.player === opponent)) return;
     setSelectedCell((prev) =>
       prev?.row === row && prev?.col === col ? null : { row, col },
     );
-  }, [isPlaying, isCpuThinking, gameMode, turnState.currentPlayer, isMyTurn, influence]);
+  }, [isPlaying, isCpuThinking, gameMode, turnState.currentPlayer, isMyTurn, influence, board]);
 
   // ──────────────────────────────────────────────────────────────────
   // アクション確定
