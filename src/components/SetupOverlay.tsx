@@ -205,7 +205,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.sm,
+    width: '100%',
+    position: 'relative',
   },
   title: {
     fontSize: FontSize.title,
@@ -214,6 +215,8 @@ const styles = StyleSheet.create({
     letterSpacing: 8,
   },
   menuBtn: {
+    position: 'absolute',
+    right: 0,
     width: 30,
     height: 30,
     borderRadius: Radius.full,
@@ -222,7 +225,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceHigh,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
   },
   menuBtnText: {
     fontSize: 14,
