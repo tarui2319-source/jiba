@@ -19,7 +19,7 @@ interface BoardProps {
 }
 
 export const Board = React.memo<BoardProps>(({
-  board, influence, size, selectedCell, currentPlayer, onCellPress,
+  board, influence, size, selectedCell, currentPlayer: _currentPlayer, onCellPress,
 }) => {
   const { width, height } = useWindowDimensions();
   const cellSize = useMemo(() => {
