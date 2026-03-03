@@ -156,12 +156,12 @@ const ObjectiveIll = memo(() => (
   <View style={illS.wrap}>
     <MiniBoard board={OBJ_BOARD} cellSize={28} />
     <View style={illS.scoreRow}>
-      <Text style={illS.blueScore}>BLUE 7</Text>
+      <Text style={illS.blueScore}>先攻 7</Text>
       <Text style={illS.vs}>vs</Text>
-      <Text style={illS.redScore}>RED 3</Text>
+      <Text style={illS.redScore}>後攻 3</Text>
     </View>
     <View style={illS.winBadge}>
-      <Text style={illS.winText}>BLUE WIN! 🎉</Text>
+      <Text style={illS.winText}>先攻の勝ち！ 🎉</Text>
     </View>
   </View>
 ));
