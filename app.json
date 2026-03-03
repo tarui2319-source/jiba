@@ -13,7 +13,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.jiba.app",
+      "bundleIdentifier": "com.jiba-game.app",
       "buildNumber": "1"
     },
     "android": {
@@ -21,7 +21,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#080c14"
       },
-      "package": "com.jiba.app",
+      "package": "com.jiba-game.app",
       "versionCode": 1,
       "permissions": []
     },
