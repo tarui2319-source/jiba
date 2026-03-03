@@ -650,7 +650,7 @@ export const MenuOverlay = memo<MenuOverlayProps>(({ visible, onClose, onEditUse
       animationType="slide"
       onRequestClose={showTutorial ? handleBackToMenu : onClose}
     >
-      <View style={s.backdrop}>
+      <View style={[s.backdrop, showTutorial && s.backdropTutorial]}>
         <View style={[s.card, showTutorial && s.cardTutorial]}>
           {showTutorial ? renderTutorial() : renderMenu()}
         </View>
@@ -682,8 +682,14 @@ const s = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: Colors.border,
   },
+  backdropTutorial: {
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xxl,
+  },
   cardTutorial: {
     paddingBottom: Spacing.xl,
+    borderRadius: Radius.xxl,
   },
 
   // ── メニュー ─────────────────────────────────────────

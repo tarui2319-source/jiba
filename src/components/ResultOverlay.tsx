@@ -145,7 +145,7 @@ ResultOverlay.displayName = 'ResultOverlay';
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(4,8,18,0.9)',
+    backgroundColor: 'rgba(4,8,18,0.75)',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 100,
