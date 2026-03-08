@@ -14,6 +14,9 @@ import { RatingRow } from '../../network/networkTypes';
 jest.mock('../../network/supabaseClient', () => ({
   getSupabaseClient: jest.fn(),
   MY_PLAYER_ID: 'test-player-uuid',
+  toNetworkError: jest.fn((err: { message?: string } | null | undefined) =>
+    new Error(err?.message ?? 'ネットワークエラーが発生しました'),
+  ),
 }));
 
 // ──────────────────────────────────────────────────────────────
