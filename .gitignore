@@ -7,6 +7,15 @@ coverage/
 .env
 .env.local
 .env.production
+.env.development
+.env.staging
 *.pem
 *.key
+# iOS/Android証明書・認証情報（流出するとApp Store申請権限ごと奪われる）
+*.p8
+*.p12
+*.mobileprovision
+GoogleService-Info.plist
+google-services.json
+Secrets.*
 .claude/worktrees/
