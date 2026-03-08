@@ -21,6 +21,7 @@ import {
   StyleSheet,
   Modal,
   PanResponder,
+  Alert,
 } from 'react-native';
 import { Colors, FontSize, Spacing, Radius, MIN_TAP } from '../constants/theme';
 import { useI18n, Locale } from '../i18n';
@@ -36,6 +37,8 @@ export interface MenuOverlayProps {
   onEditUsername: () => void;
   /** true のとき、メニューが開いた瞬間にチュートリアルを自動表示する */
   startWithTutorial?: boolean;
+  /** アカウント削除が確定したときに呼ばれるコールバック */
+  onDeleteAccount?: () => void;
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -487,7 +490,7 @@ const TOTAL_SLIDES = SLIDE_KEYS.length; // 8
 // メインコンポーネント
 // ──────────────────────────────────────────────────────────────
 
-export const MenuOverlay = memo<MenuOverlayProps>(({ visible, onClose, onEditUsername, startWithTutorial }) => {
+export const MenuOverlay = memo<MenuOverlayProps>(({ visible, onClose, onEditUsername, startWithTutorial, onDeleteAccount }) => {
   const { t, locale, setLocale } = useI18n();
   const [showTutorial, setShowTutorial] = useState(false);
   const [slide, setSlide] = useState(0);
@@ -531,6 +534,24 @@ export const MenuOverlay = memo<MenuOverlayProps>(({ visible, onClose, onEditUse
     setTimeout(() => onEditUsername(), 150);
   }, [onClose, onEditUsername]);
 
+  const handleDeleteAccountPress = useCallback(() => {
+    Alert.alert(
+      t('delete_account_title'),
+      t('delete_account_msg'),
+      [
+        { text: t('cancel'), style: 'cancel' },
+        {
+          text: t('delete_account_yes'),
+          style: 'destructive',
+          onPress: () => {
+            onClose();
+            onDeleteAccount?.();
+          },
+        },
+      ],
+    );
+  }, [t, onClose, onDeleteAccount]);
+
   const IllComponent = ILLUSTRATIONS[slide];
 
   // ── メニューリスト ────────────────────────────────────
@@ -571,6 +592,14 @@ export const MenuOverlay = memo<MenuOverlayProps>(({ visible, onClose, onEditUse
           ))}
         </View>
       </View>
+
+      {/* アカウント削除 */}
+      {onDeleteAccount != null && (
+        <TouchableOpacity style={s.menuItemDanger} onPress={handleDeleteAccountPress} activeOpacity={0.75}>
+          <Text style={s.menuIcon}>🗑</Text>
+          <Text style={s.menuLabelDanger}>{t('menu_delete_account')}</Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity style={s.closeBtn} onPress={onClose} activeOpacity={0.8}>
         <Text style={s.closeBtnText}>{t('menu_close')}</Text>
@@ -716,12 +745,30 @@ const s = StyleSheet.create({
   menuItemLang: {
     flexWrap: 'wrap',
   },
+  menuItemDanger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.md,
+    backgroundColor: 'rgba(240,82,82,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(240,82,82,0.3)',
+    minHeight: MIN_TAP,
+  },
   menuIcon: { fontSize: 20 },
   menuLabel: {
     flex: 1,
     fontSize: FontSize.md,
     fontWeight: '600',
     color: Colors.textPrimary,
+  },
+  menuLabelDanger: {
+    flex: 1,
+    fontSize: FontSize.md,
+    fontWeight: '600',
+    color: Colors.red,
   },
   menuArrow: {
     fontSize: FontSize.xl,
