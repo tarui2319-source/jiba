@@ -21,6 +21,9 @@ import { MoveRow } from '../../network/networkTypes';
 jest.mock('../../network/supabaseClient', () => ({
   getSupabaseClient: jest.fn(),
   MY_PLAYER_ID: 'my-player-uuid',
+  toNetworkError: jest.fn((err: { message?: string } | null | undefined) =>
+    new Error(err?.message ?? 'ネットワークエラーが発生しました'),
+  ),
 }));
 
 /** Realtime 手番コールバックをキャプチャ */
