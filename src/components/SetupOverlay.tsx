@@ -31,6 +31,8 @@ interface SetupOverlayProps {
   openMenuWithTutorial?: boolean;
   /** メニューが自動オープンされた直後に呼ばれるコールバック */
   onMenuWithTutorialOpened?: () => void;
+  /** アカウント削除が確定したときに呼ばれるコールバック */
+  onDeleteAccount?: () => void;
 }
 
 const DIFFICULTIES: CpuDifficulty[] = [1, 2, 3, 4];
@@ -44,6 +46,7 @@ const MODE_EMOJIS: Record<GameMode, string> = {
 export const SetupOverlay = React.memo<SetupOverlayProps>(({
   gameMode, cpuDifficulty, onSetGameMode, onSetDifficulty, onStart, rating,
   username, onEditUsername, openMenuWithTutorial, onMenuWithTutorialOpened,
+  onDeleteAccount,
 }) => {
   const { t } = useI18n();
   const [showMenu, setShowMenu] = useState(false);
@@ -84,6 +87,7 @@ export const SetupOverlay = React.memo<SetupOverlayProps>(({
           onClose={() => { setShowMenu(false); setAutoTutorial(false); }}
           onEditUsername={onEditUsername ?? (() => {})}
           startWithTutorial={autoTutorial}
+          onDeleteAccount={onDeleteAccount}
         />
 
         {/* ── タイトルヘッダー ─────────────────────────── */}

@@ -85,6 +85,10 @@ export const en: Record<I18nKey, string> = {
   menu_rules: 'How to Play',
   menu_username_item: 'Change Name',
   menu_language_item: 'Language',
+  menu_delete_account: 'Delete Account',
+  delete_account_title: 'Delete your account?',
+  delete_account_msg: 'All data including your rank and match history will be permanently deleted. This cannot be undone.',
+  delete_account_yes: 'Delete',
 
   // ── Tutorial Slides ────────────────────
   tut_prev: 'Prev',

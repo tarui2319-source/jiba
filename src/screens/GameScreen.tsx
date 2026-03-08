@@ -18,7 +18,8 @@ import { ShapeKind, Player } from '../engine/types';
 import { getRandomMove } from '../engine/randomMove';
 import { RatingState, DEFAULT_RATING } from '../engine/rankEngine';
 import { fetchRating } from '../network/ratingService';
-import { MY_PLAYER_ID } from '../network/supabaseClient';
+import { MY_PLAYER_ID, initPlayer } from '../network/supabaseClient';
+import { deleteMyAccount } from '../network/accountService';
 import { useGameState } from '../hooks/useGameState';
 import { useTimer } from '../hooks/useTimer';
 import { useCpuOpponent } from '../hooks/useCpuOpponent';
@@ -99,6 +100,16 @@ export function GameScreen() {
   const handleUsernameEdit = useCallback(() => {
     setUsernameModalVisible(true);
   }, []);
+
+  const handleDeleteAccount = useCallback(async () => {
+    await deleteMyAccount();
+    // 新しい匿名セッションを生成してアプリをリセット
+    await initPlayer();
+    resetGame(DEFAULT_MODE);
+    setSetupVisible(true);
+    setMatchResult(null);
+    setUsernameModalVisible(true);
+  }, [resetGame]);
 
   // ──────────────────────────────────────────────────────────────────
   // マッチング（オンラインモード）
@@ -490,6 +501,7 @@ export function GameScreen() {
             onEditUsername={handleUsernameEdit}
             openMenuWithTutorial={pendingTutorial}
             onMenuWithTutorialOpened={() => setPendingTutorial(false)}
+            onDeleteAccount={handleDeleteAccount}
           />
         )}
 

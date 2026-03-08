@@ -83,6 +83,10 @@ export const ja = {
   menu_rules: 'ルール説明',
   menu_username_item: '名前変更',
   menu_language_item: '言語設定',
+  menu_delete_account: 'アカウントを削除',
+  delete_account_title: 'アカウントを削除しますか？',
+  delete_account_msg: '段位・対戦記録など、すべてのデータが完全に削除されます。この操作は取り消せません。',
+  delete_account_yes: '削除する',
 
   // ── チュートリアルスライド ──────────────────────────
   tut_prev: '前へ',
