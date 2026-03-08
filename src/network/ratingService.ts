@@ -4,7 +4,7 @@
  * ネットワーク分離ルール: 外部通信コードは src/network/ 以下のみ。
  */
 
-import { getSupabaseClient, MY_PLAYER_ID } from './supabaseClient';
+import { getSupabaseClient, MY_PLAYER_ID, toNetworkError } from './supabaseClient';
 import { RatingRow } from './networkTypes';
 import { RatingState, DEFAULT_RATING } from '../engine/rankEngine';
 
@@ -27,7 +27,7 @@ export async function fetchRating(playerId: string): Promise<RatingRow | null> {
   if (error) {
     // PGRST116 = "JSON object requested, multiple (or no) rows returned" → 未登録
     if ((error as { code?: string }).code === 'PGRST116') return null;
-    throw new Error(error.message);
+    throw toNetworkError(error);
   }
 
   return data as RatingRow;
@@ -67,7 +67,7 @@ export async function upsertRating(
       { onConflict: 'player_id' },
     );
 
-  if (error) throw new Error(error.message);
+  if (error) throw toNetworkError(error);
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ export async function updateUsername(
     .eq('player_id', playerId)
     .select('player_id');
 
-  if (updateError) throw new Error(updateError.message);
+  if (updateError) throw toNetworkError(updateError);
 
   // 行が存在しなかった場合はデフォルト段位で INSERT
   if (!updated || updated.length === 0) {
@@ -111,7 +111,7 @@ export async function updateUsername(
 
     // 23505 = unique_violation（競合条件は無視）
     if (insertError && (insertError as { code?: string }).code !== '23505') {
-      throw new Error(insertError.message);
+      throw toNetworkError(insertError);
     }
   }
 }

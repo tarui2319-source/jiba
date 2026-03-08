@@ -6,7 +6,7 @@
 
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { Action, ShapeKind } from '../engine/types';
-import { getSupabaseClient, MY_PLAYER_ID } from './supabaseClient';
+import { getSupabaseClient, MY_PLAYER_ID, toNetworkError } from './supabaseClient';
 import { MoveRow, OnOpponentMove } from './networkTypes';
 
 /** Realtime チャンネルの接続状態 */
@@ -37,7 +37,7 @@ export async function insertMove(
     col: action.col,
     shape: action.shape,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw toNetworkError(error);
 }
 
 /**
@@ -59,7 +59,7 @@ export async function insertSurrenderMove(
     col: 0,
     shape: 'weak',
   });
-  if (error) throw new Error(error.message);
+  if (error) throw toNetworkError(error);
 }
 
 /**
@@ -113,7 +113,7 @@ export async function fetchExistingMoves(roomId: string): Promise<MoveRow[]> {
     .eq('room_id', roomId)
     .order('seq', { ascending: true });
 
-  if (error) throw new Error(error.message);
+  if (error) throw toNetworkError(error);
   return (data ?? []) as MoveRow[];
 }
 

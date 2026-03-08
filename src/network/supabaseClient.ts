@@ -69,6 +69,23 @@ export async function initPlayer(): Promise<void> {
   MY_PLAYER_ID = data.user.id;
 }
 
+// ──────────────────────────────────────────────────────────────
+// エラーサニタイズ
+// DBトリガーメッセージ・テーブル名・カラム名がUIに漏れないよう
+// service層で汎用メッセージに変換する（defense in depth）
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * Supabase/PostgreSQL の生のエラーメッセージをアプリ内部エラーに変換する。
+ * DB内部情報（テーブル名・カラム名・トリガーメッセージ）をUIに漏らさない。
+ */
+export function toNetworkError(
+  _error: { message?: string } | null | undefined,
+  genericMessage = 'ネットワークエラーが発生しました',
+): Error {
+  return new Error(genericMessage);
+}
+
 /** Supabase が使えない場合のフォールバック ID（セッション単位） */
 function _generateFallbackId(): string {
   const KEY = 'jiba_player_id_fallback';

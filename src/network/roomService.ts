@@ -5,7 +5,7 @@
  */
 
 import { GameMode } from '../engine/types';
-import { getSupabaseClient, MY_PLAYER_ID } from './supabaseClient';
+import { getSupabaseClient, MY_PLAYER_ID, toNetworkError } from './supabaseClient';
 import { MatchResult, RoomRow } from './networkTypes';
 
 /** 5 分以上前の waiting ルームはスタール扱いで無視 */
@@ -39,7 +39,7 @@ export async function findOrCreateRoom(mode: GameMode): Promise<MatchResult> {
     .order('created_at', { ascending: true })
     .limit(1);
 
-  if (findError) throw new Error(findError.message);
+  if (findError) throw toNetworkError(findError);
 
   if (candidates && candidates.length > 0) {
     return _joinRoom(candidates[0] as RoomRow);
@@ -62,7 +62,7 @@ export async function pollRoomStatus(
     .eq('id', roomId)
     .single();
 
-  if (error || !data) throw new Error(error?.message ?? 'Poll failed');
+  if (error || !data) throw toNetworkError(error);
   return data.status as 'waiting' | 'playing' | 'finished';
 }
 
@@ -120,7 +120,7 @@ async function _createRoom(mode: GameMode): Promise<MatchResult> {
     .select()
     .single();
 
-  if (error || !data) throw new Error(error?.message ?? 'Create room failed');
+  if (error || !data) throw toNetworkError(error);
 
   return {
     roomId: data.id,

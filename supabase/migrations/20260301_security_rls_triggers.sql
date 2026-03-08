@@ -163,6 +163,10 @@ CREATE POLICY "moves_insert_participant"
     )
   );
 
+-- moves テーブルは追記専用設計のため UPDATE/DELETE ポリシーは意図的に未設定。
+-- RLS有効時にポリシーが存在しない操作はデフォルトで全拒否される（PostgreSQL仕様）。
+-- 将来 UPDATE/DELETE が必要になった場合は明示的にポリシーを追加すること。
+
 -- ────────────────────────────────────────────────────────────────
 -- 6. player_ratings RLS ポリシー
 -- ────────────────────────────────────────────────────────────────
@@ -186,6 +190,9 @@ CREATE POLICY "ratings_update_self"
   ON player_ratings FOR UPDATE
   USING (player_id::text = auth.uid()::text)
   WITH CHECK (player_id::text = auth.uid()::text);
+
+-- player_ratings テーブルはプレイヤー自身が削除できない設計のため DELETE ポリシーは意図的に未設定。
+-- アカウント削除時は auth.users の CASCADE により連動削除される（ON DELETE CASCADE が前提）。
 
 -- ────────────────────────────────────────────────────────────────
 -- 7. 検証クエリ（確認用・実行不要）
