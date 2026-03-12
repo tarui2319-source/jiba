@@ -11,6 +11,7 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SUPABASE_URL  = process.env.EXPO_PUBLIC_SUPABASE_URL  ?? '';
 const SUPABASE_AKEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -25,8 +26,8 @@ export function getSupabaseClient(): SupabaseClient {
   if (!_client) {
     _client = createClient(SUPABASE_URL, SUPABASE_AKEY, {
       realtime: { params: { eventsPerSecond: 10 } },
-      // persistSession: true でセッションを localStorage に保持（web / native 両対応）
-      auth: { persistSession: true },
+      // AsyncStorage でセッションを永続化（ネイティブビルド対応）
+      auth: { persistSession: true, storage: AsyncStorage },
     });
   }
   return _client;
@@ -63,7 +64,7 @@ export async function initPlayer(): Promise<void> {
   const { data, error } = await sb.auth.signInAnonymously();
   if (error || !data.user) {
     // フォールバック: Supabase 未設定 / オフライン環境向け（開発時）
-    MY_PLAYER_ID = _generateFallbackId();
+    MY_PLAYER_ID = await _generateFallbackId();
     return;
   }
   MY_PLAYER_ID = data.user.id;
@@ -86,14 +87,14 @@ export function toNetworkError(
   return new Error(genericMessage);
 }
 
-/** Supabase が使えない場合のフォールバック ID（セッション単位） */
-function _generateFallbackId(): string {
+/** Supabase が使えない場合のフォールバック ID（AsyncStorage に永続化） */
+async function _generateFallbackId(): Promise<string> {
   const KEY = 'jiba_player_id_fallback';
   try {
-    const stored = localStorage.getItem(KEY);
+    const stored = await AsyncStorage.getItem(KEY);
     if (stored) return stored;
     const id = _uuid();
-    localStorage.setItem(KEY, id);
+    await AsyncStorage.setItem(KEY, id);
     return id;
   } catch {
     return _uuid();

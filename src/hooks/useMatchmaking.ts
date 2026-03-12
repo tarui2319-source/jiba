@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameMode } from '../engine/types';
 import { MatchResult } from '../network/networkTypes';
-import { findOrCreateRoom, pollRoomStatus, deleteOwnWaitingRoom } from '../network/roomService';
+import { findOrCreateRoom, pollRoomStatus, deleteOwnWaitingRoom, getWaitingCount } from '../network/roomService';
 
 // ──────────────────────────────────────────────────────────────
 // 型定義
@@ -22,7 +22,7 @@ import { findOrCreateRoom, pollRoomStatus, deleteOwnWaitingRoom } from '../netwo
 export type MatchmakingState =
   | { status: 'idle' }
   | { status: 'searching' }
-  | { status: 'waiting_for_opponent'; roomId: string }
+  | { status: 'waiting_for_opponent'; roomId: string; waitingCount: number }
   | { status: 'matched'; result: MatchResult }
   | { status: 'error'; message: string };
 
@@ -71,14 +71,23 @@ export function useMatchmaking(): UseMatchmakingReturn {
     const poll = async () => {
       if (isCancelledRef.current) return;
       try {
-        const status = await pollRoomStatus(roomId);
+        const [status, count] = await Promise.all([
+          pollRoomStatus(roomId),
+          getWaitingCount(result.mode),
+        ]);
         if (isCancelledRef.current) return;
         if (status === 'playing') {
           stopPolling();
           waitingRoomRef.current = null;
           setMatchState({ status: 'matched', result });
+        } else {
+          setMatchState(prev =>
+            prev.status === 'waiting_for_opponent'
+              ? { ...prev, waitingCount: count }
+              : prev,
+          );
         }
-        // 'waiting' は継続、'finished' は想定外なので次回ポーリングに委ねる
+        // 'finished' は想定外なので次回ポーリングに委ねる
       } catch {
         // ポーリングエラーは無視して次回再試行
       }
@@ -108,7 +117,7 @@ export function useMatchmaking(): UseMatchmakingReturn {
         setMatchState({ status: 'matched', result });
       } else {
         // SECOND: 相手が参加するまでポーリング
-        setMatchState({ status: 'waiting_for_opponent', roomId: result.roomId });
+        setMatchState({ status: 'waiting_for_opponent', roomId: result.roomId, waitingCount: 1 });
         startPolling(result);
       }
     } catch (err: unknown) {

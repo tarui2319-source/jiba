@@ -43,13 +43,13 @@ export const Colors = {
 } as const;
 
 export const FontSize = {
-  xs: 10,
-  sm: 12,
-  md: 14,
-  lg: 18,
-  xl: 24,
-  xxl: 32,
-  title: 42,
+  xs: 13,
+  sm: 16,
+  md: 19,
+  lg: 24,
+  xl: 30,
+  xxl: 38,
+  title: 48,
 } as const;
 
 export const Spacing = {

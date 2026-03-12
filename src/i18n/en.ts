@@ -59,6 +59,7 @@ export const en: Record<I18nKey, string> = {
   searching: 'Finding an opponent...',
   waiting_for_opponent: 'Waiting for opponent...',
   elapsed_sec: '{n}s',
+  waiting_count: 'Waiting: {n}',
   matching_error_title: 'Matching Error',
 
   // ── Connection ─────────────────────────

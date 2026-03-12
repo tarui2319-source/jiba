@@ -74,6 +74,13 @@ export const MatchmakingOverlay = React.memo<MatchmakingOverlayProps>(
             <>
               <ActivityIndicator size="large" color={Colors.blue} />
               <Text style={styles.primaryText}>{t('searching')}</Text>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={onCancel}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
+              </TouchableOpacity>
             </>
           )}
 
@@ -82,6 +89,7 @@ export const MatchmakingOverlay = React.memo<MatchmakingOverlayProps>(
               <ActivityIndicator size="large" color={Colors.blue} />
               <Text style={styles.primaryText}>{t('waiting_for_opponent')}</Text>
               <Text style={styles.elapsedText}>{t('elapsed_sec', { n: elapsed })}</Text>
+              <Text style={styles.waitingCountText}>{t('waiting_count', { n: matchState.waitingCount })}</Text>
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={onCancel}
@@ -153,6 +161,10 @@ const styles = StyleSheet.create({
   elapsedText: {
     color: Colors.textSecondary,
     fontSize: FontSize.sm,
+  },
+  waitingCountText: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
   },
   errorIcon: {
     fontSize: 36,

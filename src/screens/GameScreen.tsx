@@ -6,7 +6,7 @@
  * MVP6: 段位システム（usePlayerRating）配線。
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -59,7 +59,7 @@ function randomPlayer(): Player {
 export function GameScreen() {
   const { t } = useI18n();
   const { playPlace, playWin, playLoss, playDraw, playRankUp } = useSoundEffects();
-  const { username, isSaving: isUsernameSaving, saveUsername } = useUsername();
+  const { username, isLoaded: isUsernameLoaded, isSaving: isUsernameSaving, saveUsername, clearUsername } = useUsername();
 
   const gameStateReturn = useGameState(DEFAULT_MODE);
   const { gameState, applyMove, applyRandomMove, resetGame, surrender, size } = gameStateReturn;
@@ -84,17 +84,17 @@ export function GameScreen() {
   // 初回ユーザーネーム設定後にチュートリアルを自動表示するフラグ
   const [pendingTutorial, setPendingTutorial] = useState(false);
 
-  // 初回起動時（username 未設定）はモーダルを表示
+  // AsyncStorage 読み込み完了後、username 未設定ならモーダルを表示
   useEffect(() => {
-    if (username === null) setUsernameModalVisible(true);
+    if (isUsernameLoaded && username === null) setUsernameModalVisible(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isUsernameLoaded]);
 
   const handleUsernameSave = useCallback(async (name: string) => {
     const isFirstTime = username === null;
     await saveUsername(name);
     setUsernameModalVisible(false);
-    if (isFirstTime) setPendingTutorial(true);
+    if (isFirstTime) setTimeout(() => setPendingTutorial(true), 400);
   }, [saveUsername, username]);
 
   const handleUsernameEdit = useCallback(() => {
@@ -102,14 +102,20 @@ export function GameScreen() {
   }, []);
 
   const handleDeleteAccount = useCallback(async () => {
-    await deleteMyAccount();
+    try {
+      await deleteMyAccount();
+    } catch {
+      // 削除失敗はサイレントに続行（ローカルリセットは必ず実施）
+    }
+    // ローカルデータをクリア
+    await clearUsername();
     // 新しい匿名セッションを生成してアプリをリセット
     await initPlayer();
     resetGame(DEFAULT_MODE);
     setSetupVisible(true);
     setMatchResult(null);
     setUsernameModalVisible(true);
-  }, [resetGame]);
+  }, [resetGame, clearUsername]);
 
   // ──────────────────────────────────────────────────────────────────
   // マッチング（オンラインモード）
@@ -229,10 +235,16 @@ export function GameScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turnState.currentPlayer]);
 
-  // 残り5秒で振動（人間のターンのみ）
+  // 残り5秒で振動（人間のターンのみ・1ターンにつき1回だけ）
+  const hapticFiredRef = useRef(false);
   useEffect(() => {
-    if (isWarning && isPlaying && seconds === 5 && isMyTurn) {
+    // ターンが変わったらフラグをリセット
+    hapticFiredRef.current = false;
+  }, [turnState.currentPlayer]);
+  useEffect(() => {
+    if (isWarning && isPlaying && seconds === 5 && isMyTurn && !hapticFiredRef.current) {
       if (gameMode !== 'cpu' || turnState.currentPlayer !== cpuSide) {
+        hapticFiredRef.current = true;
         Haptics?.impactAsync('medium').catch(() => {});
       }
     }
@@ -438,9 +450,9 @@ export function GameScreen() {
             <>
               <TouchableOpacity
                 testID="surrender-button"
-                style={[styles.surrenderButton, !isPlaying && styles.surrenderButtonDisabled]}
+                style={[styles.surrenderButton, (!isPlaying || isCpuThinking) && styles.surrenderButtonDisabled]}
                 onPress={handleSurrender}
-                disabled={!isPlaying}
+                disabled={!isPlaying || isCpuThinking}
                 activeOpacity={0.8}
               >
                 <Text style={styles.surrenderButtonText}>{t('surrender')}</Text>

@@ -84,7 +84,7 @@ export const UsernameModal = React.memo<UsernameModalProps>(({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onCancel}
+      onRequestClose={onCancel ?? (() => {})}
     >
       <KeyboardAvoidingView
         style={styles.backdrop}

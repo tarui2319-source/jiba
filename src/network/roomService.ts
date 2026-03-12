@@ -67,6 +67,23 @@ export async function pollRoomStatus(
 }
 
 /**
+ * 現在マッチング待機中のプレイヤー数を取得する。
+ */
+export async function getWaitingCount(mode: GameMode): Promise<number> {
+  const sb = getSupabaseClient();
+  const staleThreshold = new Date(
+    Date.now() - STALE_ROOM_MINUTES * 60 * 1000,
+  ).toISOString();
+  const { count } = await sb
+    .from('rooms')
+    .select('*', { count: 'exact', head: true })
+    .eq('mode', mode)
+    .eq('status', 'waiting')
+    .gte('created_at', staleThreshold);
+  return count ?? 0;
+}
+
+/**
  * ゲーム終了時にルームを finished に更新。
  * 失敗は無視して良い（fire-and-forget での使用を想定）。
  */
@@ -96,13 +113,15 @@ export async function deleteOwnWaitingRoom(roomId: string): Promise<void> {
 
 async function _joinRoom(room: RoomRow): Promise<MatchResult> {
   const sb = getSupabaseClient();
-  const { error } = await sb
+  const { data, error } = await sb
     .from('rooms')
     .update({ first_id: MY_PLAYER_ID, status: 'playing' })
     .eq('id', room.id)
-    .eq('status', 'waiting'); // 競合防止: まだ waiting の場合のみ更新
+    .eq('status', 'waiting') // 競合防止: まだ waiting の場合のみ更新
+    .select();
 
-  if (error) throw new Error('ROOM_TAKEN');
+  // error が null でも 0 行更新（= 他プレイヤーが先に join した）は ROOM_TAKEN 扱い
+  if (error || !data || data.length === 0) throw new Error('ROOM_TAKEN');
 
   return {
     roomId: room.id,

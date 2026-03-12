@@ -11,6 +11,7 @@ import {
   findOrCreateRoom,
   pollRoomStatus,
   deleteOwnWaitingRoom,
+  getWaitingCount,
 } from '../../network/roomService';
 import { MatchResult } from '../../network/networkTypes';
 
@@ -23,6 +24,7 @@ jest.mock('../../network/roomService', () => ({
   pollRoomStatus:        jest.fn(),
   deleteOwnWaitingRoom:  jest.fn(),
   closeRoom:             jest.fn(),
+  getWaitingCount:       jest.fn(),
 }));
 
 /** マイクロタスクキューを空にする（jsdom/node 両対応） */
@@ -34,6 +36,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.useFakeTimers();
   (deleteOwnWaitingRoom as jest.Mock).mockResolvedValue(undefined);
+  (getWaitingCount as jest.Mock).mockResolvedValue(1);
 });
 
 afterEach(() => {
