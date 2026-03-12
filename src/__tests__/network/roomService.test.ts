@@ -54,8 +54,13 @@ function mockForFindOrCreate({
   const insertSelect = jest.fn().mockReturnValue({ single: insertSingle });
   const insertFn     = jest.fn().mockReturnValue({ select: insertSelect });
 
-  // ── update().eq().eq() ────────────────────────────────────
-  const updateEq2 = jest.fn().mockResolvedValue({ error: joinError });
+  // ── update().eq().eq().select() ──────────────────────────
+  // 成功時: data=[{ id }]（1行更新）、失敗時: error あり or data=[]（0行更新）
+  const updateSelect = jest.fn().mockResolvedValue({
+    data: joinError ? null : [{ id: 'room-1' }],
+    error: joinError,
+  });
+  const updateEq2 = jest.fn().mockReturnValue({ select: updateSelect });
   const updateEq1 = jest.fn().mockReturnValue({ eq: updateEq2 });
   const updateFn  = jest.fn().mockReturnValue({ eq: updateEq1 });
 
