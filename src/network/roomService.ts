@@ -80,7 +80,7 @@ export async function getWaitingCount(mode: GameMode): Promise<number> {
     .eq('mode', mode)
     .eq('status', 'waiting')
     .gte('created_at', staleThreshold);
-  return (count ?? 0) + 1; // 自分を含めた人数
+  return count ?? 0;
 }
 
 /**

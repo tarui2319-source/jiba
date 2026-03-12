@@ -6,7 +6,7 @@
  * MVP6: 段位システム（usePlayerRating）配線。
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -235,10 +235,16 @@ export function GameScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turnState.currentPlayer]);
 
-  // 残り5秒で振動（人間のターンのみ）
+  // 残り5秒で振動（人間のターンのみ・1ターンにつき1回だけ）
+  const hapticFiredRef = useRef(false);
   useEffect(() => {
-    if (isWarning && isPlaying && seconds === 5 && isMyTurn) {
+    // ターンが変わったらフラグをリセット
+    hapticFiredRef.current = false;
+  }, [turnState.currentPlayer]);
+  useEffect(() => {
+    if (isWarning && isPlaying && seconds === 5 && isMyTurn && !hapticFiredRef.current) {
       if (gameMode !== 'cpu' || turnState.currentPlayer !== cpuSide) {
+        hapticFiredRef.current = true;
         Haptics?.impactAsync('medium').catch(() => {});
       }
     }
@@ -444,9 +450,9 @@ export function GameScreen() {
             <>
               <TouchableOpacity
                 testID="surrender-button"
-                style={[styles.surrenderButton, !isPlaying && styles.surrenderButtonDisabled]}
+                style={[styles.surrenderButton, (!isPlaying || isCpuThinking) && styles.surrenderButtonDisabled]}
                 onPress={handleSurrender}
-                disabled={!isPlaying}
+                disabled={!isPlaying || isCpuThinking}
                 activeOpacity={0.8}
               >
                 <Text style={styles.surrenderButtonText}>{t('surrender')}</Text>

@@ -74,6 +74,13 @@ export const MatchmakingOverlay = React.memo<MatchmakingOverlayProps>(
             <>
               <ActivityIndicator size="large" color={Colors.blue} />
               <Text style={styles.primaryText}>{t('searching')}</Text>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={onCancel}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
+              </TouchableOpacity>
             </>
           )}
 
