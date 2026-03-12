@@ -90,7 +90,8 @@ export const MenuOverlay = memo<MenuOverlayProps>(({ visible, onClose, onEditUse
   const handleEditUsername = useCallback(() => {
     onClose();
     // UsernameModal は GameScreen 側で管理。メニューを閉じてから開く。
-    setTimeout(() => onEditUsername(), 150);
+    // iOS のスライドアニメーション（約 300ms）完了後に開く
+    setTimeout(() => onEditUsername(), 300);
   }, [onClose, onEditUsername]);
 
   const handleDeleteAccountPress = useCallback(() => {

@@ -109,8 +109,8 @@ export function GameScreen() {
     }
     // ローカルデータをクリア
     await clearUsername();
-    // 新しい匿名セッションを生成してアプリをリセット
-    await initPlayer();
+    // 新しい匿名セッションを生成（失敗してもリセットは続行）
+    try { await initPlayer(); } catch { /* フォールバック UUID が使われる */ }
     resetGame(DEFAULT_MODE);
     setSetupVisible(true);
     setMatchResult(null);
