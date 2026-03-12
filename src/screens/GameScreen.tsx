@@ -94,7 +94,7 @@ export function GameScreen() {
     const isFirstTime = username === null;
     await saveUsername(name);
     setUsernameModalVisible(false);
-    if (isFirstTime) setPendingTutorial(true);
+    if (isFirstTime) setTimeout(() => setPendingTutorial(true), 400);
   }, [saveUsername, username]);
 
   const handleUsernameEdit = useCallback(() => {
