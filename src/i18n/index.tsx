@@ -1,7 +1,6 @@
 /**
  * JIBA — i18n コンテキスト
- * React Context + localStorage で言語設定を永続化する。
- * AsyncStorage 不要（localStorage と同じ仕組みで player_id を保持しているため）。
+ * React Context + AsyncStorage で言語設定を永続化する。
  */
 
 import React, {
@@ -9,8 +8,10 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useEffect,
   ReactNode,
 } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ja, I18nKey } from './ja';
 import { en } from './en';
 
@@ -25,22 +26,6 @@ type Strings = Record<I18nKey, string>;
 const STRINGS: Record<Locale, Strings> = { ja, en };
 
 const STORAGE_KEY = 'jiba_locale';
-
-// ──────────────────────────────────────────────────────────────
-// ロケール永続化
-// ──────────────────────────────────────────────────────────────
-
-function loadLocale(): Locale {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'ja' || saved === 'en') return saved;
-  } catch {}
-  return 'ja';
-}
-
-function saveLocale(locale: Locale): void {
-  try { localStorage.setItem(STORAGE_KEY, locale); } catch {}
-}
 
 // ──────────────────────────────────────────────────────────────
 // Context
@@ -64,11 +49,20 @@ const I18nContext = createContext<I18nContextValue>({
 // ──────────────────────────────────────────────────────────────
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => loadLocale());
+  const [locale, setLocaleState] = useState<Locale>('ja');
+
+  // 起動時に AsyncStorage から読み込む
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then(saved => {
+        if (saved === 'ja' || saved === 'en') setLocaleState(saved);
+      })
+      .catch(() => {});
+  }, []);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
-    saveLocale(next);
+    AsyncStorage.setItem(STORAGE_KEY, next).catch(() => {});
   }, []);
 
   const t = useCallback(

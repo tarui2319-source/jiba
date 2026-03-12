@@ -392,7 +392,7 @@ const s = StyleSheet.create({
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 30,
     paddingHorizontal: Spacing.md,
   },
 

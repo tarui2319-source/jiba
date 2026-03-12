@@ -57,6 +57,7 @@ export const ja = {
   searching: '対戦相手を探しています...',
   waiting_for_opponent: '相手の接続を待っています...',
   elapsed_sec: '{n}秒',
+  waiting_count: '待機中: {n}人',
   matching_error_title: 'マッチングエラー',
 
   // ── 接続 ───────────────────────────────

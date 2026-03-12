@@ -67,6 +67,23 @@ export async function pollRoomStatus(
 }
 
 /**
+ * 現在マッチング待機中のプレイヤー数を取得する。
+ */
+export async function getWaitingCount(mode: GameMode): Promise<number> {
+  const sb = getSupabaseClient();
+  const staleThreshold = new Date(
+    Date.now() - STALE_ROOM_MINUTES * 60 * 1000,
+  ).toISOString();
+  const { count } = await sb
+    .from('rooms')
+    .select('*', { count: 'exact', head: true })
+    .eq('mode', mode)
+    .eq('status', 'waiting')
+    .gte('created_at', staleThreshold);
+  return (count ?? 0) + 1; // 自分を含めた人数
+}
+
+/**
  * ゲーム終了時にルームを finished に更新。
  * 失敗は無視して良い（fire-and-forget での使用を想定）。
  */

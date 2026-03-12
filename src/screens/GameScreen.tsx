@@ -59,7 +59,7 @@ function randomPlayer(): Player {
 export function GameScreen() {
   const { t } = useI18n();
   const { playPlace, playWin, playLoss, playDraw, playRankUp } = useSoundEffects();
-  const { username, isSaving: isUsernameSaving, saveUsername } = useUsername();
+  const { username, isLoaded: isUsernameLoaded, isSaving: isUsernameSaving, saveUsername, clearUsername } = useUsername();
 
   const gameStateReturn = useGameState(DEFAULT_MODE);
   const { gameState, applyMove, applyRandomMove, resetGame, surrender, size } = gameStateReturn;
@@ -84,11 +84,11 @@ export function GameScreen() {
   // 初回ユーザーネーム設定後にチュートリアルを自動表示するフラグ
   const [pendingTutorial, setPendingTutorial] = useState(false);
 
-  // 初回起動時（username 未設定）はモーダルを表示
+  // AsyncStorage 読み込み完了後、username 未設定ならモーダルを表示
   useEffect(() => {
-    if (username === null) setUsernameModalVisible(true);
+    if (isUsernameLoaded && username === null) setUsernameModalVisible(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isUsernameLoaded]);
 
   const handleUsernameSave = useCallback(async (name: string) => {
     const isFirstTime = username === null;
@@ -102,14 +102,20 @@ export function GameScreen() {
   }, []);
 
   const handleDeleteAccount = useCallback(async () => {
-    await deleteMyAccount();
+    try {
+      await deleteMyAccount();
+    } catch {
+      // 削除失敗はサイレントに続行（ローカルリセットは必ず実施）
+    }
+    // ローカルデータをクリア
+    await clearUsername();
     // 新しい匿名セッションを生成してアプリをリセット
     await initPlayer();
     resetGame(DEFAULT_MODE);
     setSetupVisible(true);
     setMatchResult(null);
     setUsernameModalVisible(true);
-  }, [resetGame]);
+  }, [resetGame, clearUsername]);
 
   // ──────────────────────────────────────────────────────────────────
   // マッチング（オンラインモード）

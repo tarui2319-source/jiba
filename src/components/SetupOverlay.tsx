@@ -221,8 +221,8 @@ const styles = StyleSheet.create({
   menuBtn: {
     position: 'absolute',
     right: 0,
-    width: 30,
-    height: 30,
+    width: 44,
+    height: 44,
     borderRadius: Radius.full,
     borderWidth: 1.5,
     borderColor: Colors.border,
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   menuBtnText: {
-    fontSize: 14,
+    fontSize: FontSize.md,
     color: Colors.textSecondary,
   },
   subtitle: {
